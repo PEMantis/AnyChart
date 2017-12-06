@@ -1330,7 +1330,8 @@
         "connectorStroke": {"$ref": "#/definitions/stroke"},
         "stroke": {"$ref": "#/definitions/stroke"},
         "fill": {"$ref": "#/definitions/fill"},
-        "hatchFill": {"$ref": "#/definitions/hatchFillSet"}
+        "hatchFill": {"$ref": "#/definitions/hatchFillSet"},
+        "outline": {"$ref": "#/definitions/anychart.core.ui.Outline"}
       },
       "required": ["type"]
     },
@@ -4939,6 +4940,15 @@
         "cornersRadius": {"type": "number"}
       }
     },
+    "anychart.core.ui.Outline": {
+      "type": "object",
+      "properties": {
+        "fill": {"$ref": "#/definitions/fill"},
+        "stroke": {"$ref": "#/definitions/stroke"},
+        "width": {"type": ["number", "string"]},
+        "offset": {"type": ["number", "string"]}
+      }
+    },
 
     "anychart.core.Text": {
       "type": "object",
@@ -5775,6 +5785,12 @@
           "type": "number"
         },
         "allowMultiSeriesSelection": {
+          "type": "boolean"
+        },
+        "multiSelectOnClick": {
+          "type": "boolean"
+        },
+        "unselectOnClickOutOfPoint": {
           "type": "boolean"
         }
       }

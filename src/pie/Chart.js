@@ -1029,22 +1029,24 @@ anychart.pieModule.Chart.prototype.colorizeSlice = function(pointState) {
 
 
       var sliceOutline = /** @type {acgraph.vector.Path} */ (this.getIterator().meta('sliceOutline'));
+      if (sliceOutline) {
+        fillResolver = anychart.pieModule.Chart.getColorResolver('outline.fill', anychart.enums.ColorType.FILL, true);
+        fillColor = fillResolver(this, pointState, false, true);
+        if (this.isRadialGradientMode_(fillColor) && goog.isNull(fillColor.mode)) {
+          //fillColor = /** @type {!acgraph.vector.Fill} */(goog.object.clone(/** @type {Object} */(fillColor)));
+          fillColor.mode = this.pieBounds_ ? this.pieBounds_ : null;
+        }
 
-      fillResolver = anychart.pieModule.Chart.getColorResolver('outline.fill', anychart.enums.ColorType.FILL, true);
-      fillColor = fillResolver(this, pointState, false, true);
-      if (this.isRadialGradientMode_(fillColor) && goog.isNull(fillColor.mode)) {
-        //fillColor = /** @type {!acgraph.vector.Fill} */(goog.object.clone(/** @type {Object} */(fillColor)));
-        fillColor.mode = this.pieBounds_ ? this.pieBounds_ : null;
+        strokeResolver = anychart.pieModule.Chart.getColorResolver('outline.stroke', anychart.enums.ColorType.STROKE, true);
+        strokeColor = strokeResolver(this, pointState, false, true);
+        if (this.isRadialGradientMode_(strokeColor) && goog.isNull(strokeColor.mode)) {
+          strokeColor.mode = this.pieBounds_ ? this.pieBounds_ : null;
+        }
+
+        sliceOutline
+            .fill(fillColor)
+            .stroke(strokeColor);
       }
-
-      strokeResolver = anychart.pieModule.Chart.getColorResolver('outline.stroke', anychart.enums.ColorType.STROKE, true);
-      strokeColor = strokeResolver(this, pointState, false, true);
-      if (this.isRadialGradientMode_(strokeColor) && goog.isNull(strokeColor.mode)) {
-        strokeColor.mode = this.pieBounds_ ? this.pieBounds_ : null;
-      }
-
-      sliceOutline.fill(fillColor);
-      sliceOutline.stroke(strokeColor);
 
       this.applyHatchFill(pointState);
     }
@@ -2489,12 +2491,18 @@ anychart.pieModule.Chart.prototype.drawSlice_ = function(pointState, opt_update)
     if (hatchSlice) hatchSlice.clear();
     if (sliceOutline) sliceOutline.clear();
   } else {
-    slice = /** @type {!acgraph.vector.Path} */(this.dataLayer_.genNextChild());
-    iterator.meta('slice', slice);
-    sliceOutline = /** @type {!acgraph.vector.Path} */(this.outlineLayer_.genNextChild());
-    iterator.meta('sliceOutline', sliceOutline);
-    hatchSlice = /** @type {acgraph.vector.Path} */(this.hatchLayer_.genNextChild());
-    iterator.meta('hatchSlice', hatchSlice);
+    if (this.dataLayer_) {
+      slice = /** @type {!acgraph.vector.Path} */(this.dataLayer_.genNextChild());
+      iterator.meta('slice', slice);
+    }
+    if (this.outlineLayer_) {
+      sliceOutline = /** @type {!acgraph.vector.Path} */(this.outlineLayer_.genNextChild());
+      iterator.meta('sliceOutline', sliceOutline);
+    }
+    if (this.hatchLayer_) {
+      hatchSlice = /** @type {acgraph.vector.Path} */(this.hatchLayer_.genNextChild());
+      iterator.meta('hatchSlice', hatchSlice);
+    }
   }
 
   if (slice) {
@@ -2517,11 +2525,12 @@ anychart.pieModule.Chart.prototype.drawSlice_ = function(pointState, opt_update)
     var outerSliceRadius = this.radiusValue_;
     var innerOutlineRadius = outerSliceRadius + outlineOffset;
     var outerOutlineRadius = outerSliceRadius + outlineOffset + outlineWidth;
-
-    if (!outlineWidth) {
-      sliceOutline.clear();
-    } else {
-      acgraph.vector.primitives.donut(sliceOutline, this.cx_ + ex, this.cy_ + ey, outerOutlineRadius, innerOutlineRadius, start, sweep);
+    if (sliceOutline) {
+      if (!outlineWidth) {
+        sliceOutline.clear();
+      } else {
+        acgraph.vector.primitives.donut(sliceOutline, this.cx_ + ex, this.cy_ + ey, outerOutlineRadius, innerOutlineRadius, start, sweep);
+      }
     }
     slice = acgraph.vector.primitives.donut(slice, this.cx_ + ex, this.cy_ + ey, outerSliceRadius, this.innerRadiusValue_, start, sweep);
 
@@ -2555,7 +2564,7 @@ anychart.pieModule.Chart.prototype.drawSlice_ = function(pointState, opt_update)
  * @param {number} sweep
  * @param {anychart.PointState|number} pointState
  * @param {boolean=} opt_update
- * @return {!acgraph.vector.Path}
+ * @return {acgraph.vector.Path}
  * @private
  */
 anychart.pieModule.Chart.prototype.drawFrontSide_ = function(cx, cy, outerR, startAngle, endAngle, sweep, pointState, opt_update) {
@@ -2563,6 +2572,7 @@ anychart.pieModule.Chart.prototype.drawFrontSide_ = function(cx, cy, outerR, sta
   var uniqueValue = '' + startAngle;
   var pathName = 'frontPath' + uniqueValue;
   var path = this.createPath_(pathName, opt_update);
+  if (!path) return null;
 
   var outerXR = outerR;
   var outerYR = this.get3DYRadius(outerR);
@@ -2607,7 +2617,7 @@ anychart.pieModule.Chart.prototype.drawFrontSide_ = function(cx, cy, outerR, sta
  * @param {number} sweep
  * @param {anychart.PointState|number} pointState
  * @param {boolean=} opt_update
- * @return {!acgraph.vector.Path}
+ * @return {acgraph.vector.Path}
  * @private
  */
 anychart.pieModule.Chart.prototype.drawBackSide_ = function(cx, cy, innerR, startAngle, endAngle, sweep, pointState, opt_update) {
@@ -2615,6 +2625,7 @@ anychart.pieModule.Chart.prototype.drawBackSide_ = function(cx, cy, innerR, star
   var uniqueValue = '' + startAngle;
   var pathName = 'backPath' + uniqueValue;
   var path = this.createPath_(pathName, opt_update);
+  if (!path) return null;
 
   var innerXR = innerR;
   var innerYR = this.get3DYRadius(innerR);
@@ -2659,7 +2670,7 @@ anychart.pieModule.Chart.prototype.drawBackSide_ = function(cx, cy, innerR, star
  * @param {number} angle
  * @param {anychart.PointState|number} pointState
  * @param {boolean=} opt_update
- * @return {!acgraph.vector.Path}
+ * @return {acgraph.vector.Path}
  * @private
  */
 anychart.pieModule.Chart.prototype.drawSimpleSide_ = function(pathName, cx, cy, outerR, innerR, angle, pointState, opt_update) {
@@ -2677,6 +2688,8 @@ anychart.pieModule.Chart.prototype.drawSimpleSide_ = function(pathName, cx, cy, 
   var y2 = cy + outerYR * Math.sin(radAngle);
 
   var path = this.createPath_(pathName, opt_update);
+  if (!path) return null;
+
   path.moveTo(x1, y1);
   path.lineTo(x2, y2);
   path.lineTo(x2, y2 + h);
@@ -3019,7 +3032,7 @@ anychart.pieModule.Chart.prototype.draw3DSlice_ = function(side, opt_update) {
  * @param {number} sweep Sweep angle in degrees.
  * @param {(anychart.PointState|number)} pointState Point state.
  * @param {boolean=} opt_update
- * @return {!acgraph.vector.Path}
+ * @return {acgraph.vector.Path}
  * @private
  */
 anychart.pieModule.Chart.prototype.drawTopSide_ = function(cx, cy, outerR, innerR, start, sweep, pointState, opt_update) {
@@ -3034,6 +3047,7 @@ anychart.pieModule.Chart.prototype.drawTopSide_ = function(cx, cy, outerR, inner
   sweep = goog.math.clamp(sweep, -360, 360);
 
   var path = this.createPath_('topPath', opt_update);
+  if (!path) return null;
 
   // draw pie
   if (innerR <= 0) {
@@ -3092,7 +3106,7 @@ anychart.pieModule.Chart.prototype.createPath_ = function(pathName, opt_update) 
     path = /** @type {!acgraph.vector.Path} */ (iterator.meta(pathName));
     hatchPath = /** @type {!acgraph.vector.Path} */ (iterator.meta(hatchName));
 
-    path.clear();
+    if (path) path.clear();
     if (hatchPath) hatchPath.clear();
 
   } else {
@@ -4426,6 +4440,7 @@ anychart.pieModule.Chart.prototype.serialize = function() {
   anychart.core.settings.serialize(this, anychart.pieModule.Chart.PROPERTY_DESCRIPTORS, json, 'Pie');
   json['normal'] = this.normal_.serialize();
   json['hovered'] = this.hovered_.serialize();
+  json['selected'] = this.selected_.serialize();
 
   // The values of group() function can be function or null or 'none'. So we don't serialize it anyway.
   //if (goog.isFunction(this['group'])) {

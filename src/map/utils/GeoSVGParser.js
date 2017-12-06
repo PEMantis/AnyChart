@@ -270,7 +270,7 @@ anychart.mapModule.utils.GeoSVGParser.prototype.convertLinearGradient = function
   var y1 = goog.isDef(y1_self) ? y1_self : goog.isDef(y1_) ? y1_ : 0;
   var x2 = goog.isDef(x2_self) ? x2_self : goog.isDef(x2_) ? x2_ : 0;
   var y2 = goog.isDef(y2_self) ? y2_self : goog.isDef(y2_) ? y2_ : 0;
-  var opacity = goog.isDef(opacity_self) ? opacity_self : goog.isDef(opacity_) ? opacity_ : 0;
+  var opacity = goog.isDef(opacity_self) ? opacity_self : goog.isDef(opacity_) ? opacity_ : 1;
 
   x1 = anychart.math.round(x1, 7);
   y1 = anychart.math.round(y1, 7);
@@ -344,7 +344,7 @@ anychart.mapModule.utils.GeoSVGParser.prototype.convertRadialGradient = function
   var cy = goog.isDef(cy_self) ? cy_self : goog.isDef(cy_) ? cy_ : 0;
   var fx = goog.isDef(fx_self) ? fx_self : goog.isDef(fx_) ? fx_ : 0;
   var fy = goog.isDef(fy_self) ? fy_self : goog.isDef(fy_) ? fy_ : 0;
-  var opacity = goog.isDef(opacity_self) ? opacity_self : goog.isDef(opacity_) ? opacity_ : 0;
+  var opacity = goog.isDef(opacity_self) ? opacity_self : goog.isDef(opacity_) ? opacity_ : 1;
 
   if (units && units.toLowerCase() == 'userspaceonuse') {
     var d = r * 2;
