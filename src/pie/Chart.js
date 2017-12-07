@@ -1117,16 +1117,37 @@ anychart.pieModule.Chart.prototype.isNoData = function() {
 //endregion
 //region --- Center content
 /**
- *
+ * 
+ * @param {(acgraph.vector.Element|anychart.core.VisualBase|string)=} opt_value
+ * @return {acgraph.vector.Element|anychart.core.VisualBase|anychart.pieModule.Chart|string}
  */
-anychart.pieModule.Chart.prototype.centerContent = function() {
-  // if (!this.centerContent_) {
-  //   this.centerContent_ = new anychart.pieModule.CenterContent();
-  //   this.centerContent_.listen();
-  //   this.invalidate(anychart.ConsistencyState.PIE_CENTER_CONTENT, anychart.Signal.NEEDS_REDRAW);
-  // }
-  //
-  // return this.centerContent_;
+anychart.pieModule.Chart.prototype.centerContent = function(opt_value) {
+  if (goog.isDef(opt_value)) {
+    if (this.centerContent_ != opt_value) {
+
+      if (this.realCenterContent_)
+        this.contentToClear_ = this.realCenterContent_;
+
+      if (goog.isString(opt_value)) {
+        
+      } else if (goog.dom.isElement(opt_value)) {
+
+      } else if (anychart.utils.instanceOf(opt_value, acgraph.vector.Element)) {
+        this.realCenterContent_ = acgraph.layer();
+        this.realCenterContent_.addChild(/** @type {!acgraph.vector.Element} */(this.centerContent_));
+      } else {
+        this.realCenterContent_ = acgraph.layer();
+        opt_value.suspendSignalsDispatching();
+        opt_value.container(this.realCenterContent_);
+      }
+
+      this.centerContent_ = /** @type {acgraph.vector.Element|anychart.core.VisualBase|string} */(opt_value);
+
+      this.invalidate(anychart.ConsistencyState.PIE_CENTER_CONTENT, anychart.Signal.NEEDS_REDRAW);
+    }
+    return this;
+  }
+  return this.centerContent_;
 };
 
 
@@ -1945,6 +1966,11 @@ anychart.pieModule.Chart.prototype.updateBounds = function() {
       innerRadius(this.radiusValue_) :
       anychart.utils.normalizeSize(innerRadius, this.radiusValue_);
 
+  var innerRectSide = this.innerRadiusValue_ / Math.pow(2, .5) * 2;
+  var x = this.cx_ - innerRectSide / 2;
+  var y = this.cy_ - innerRectSide / 2;
+  this.centerContentBounds_ = anychart.math.rect(x, y, innerRectSide, innerRectSide);
+
   /**
    * Bounds of pie. (Not bounds of content area).
    * Need for radial gradient to set correct bounds.
@@ -2002,18 +2028,63 @@ anychart.pieModule.Chart.prototype.drawContent = function(bounds) {
   //   this.tooltip().container(/** @type {acgraph.vector.ILayer} */(this.container()));
   // }
 
-  if (this.hasInvalidationState(anychart.ConsistencyState.BOUNDS)) {
-    this.calculateBounds_(bounds);
-    this.invalidate(anychart.ConsistencyState.APPEARANCE | anychart.ConsistencyState.PIE_LABELS);
-  }
-
   if (this.hasInvalidationState(anychart.ConsistencyState.PIE_CENTER_CONTENT)) {
     // if (this.centerContentLayer_) {
     //   this.centerContentLayer_.parent(this.rootElement);
     //   this.centerContentLayer_.content('<div style="position: absolute; left: 100px; top: 100px; width: 100px; height: 100px">sdfsdfs</div>');
     // }
 
+    if (this.realCenterContent_) {
+      if (this.contentToClear_) {
+        var content = this.contentToClear_;
+        // if (anychart.utils.instanceOf(content, acgraph.vector.Element)) {
+        //   content.remove();
+        // } else {
+        //   content.suspendSignalsDispatching();
+        //   if (anychart.utils.instanceOf(content, anychart.core.ui.LabelsFactory.Label)) {
+        //     label = /** @type {anychart.core.ui.LabelsFactory.Label} */(content);
+        //     if (label.parentLabelsFactory())
+        //       label.parentLabelsFactory().clear(label.getIndex());
+        //   } else if (anychart.utils.instanceOf(content, anychart.core.ui.MarkersFactory.Marker)) {
+        //     marker = /** @type {anychart.core.ui.MarkersFactory.Marker} */(content);
+        //     if (marker.parentMarkersFactory())
+        //       marker.parentMarkersFactory().clear(marker.getIndex());
+        //   } else if (anychart.utils.instanceOf(content, anychart.core.VisualBase)) {
+        //     if (content.isChart && content.isChart()) {
+        //       chart = /** @type {anychart.core.Chart} */(content);
+        //       chart.autoRedraw(chart.originalAutoRedraw);
+        //     }
+        //     content.container(null);
+        //     content.remove();
+        //     // no draw here to avoid drawing in to a null container
+        //   }
+        //   content.unlistenSignals(this.handleContentInvalidation_);
+        //   content.resumeSignalsDispatching(false);
+        // }
+
+        this.contentToClear_ = null;
+      }
+      // var contentIsGraphicsElement = anychart.utils.instanceOf(this.realCenterContent_, acgraph.vector.Element);
+      // if (contentIsGraphicsElement) {
+        this.realCenterContent_.parent(this.rootElement);
+      // } else {
+      //   this.realCenterContent_.container(this.rootElement);
+      // }
+    }
+
     this.markConsistent(anychart.ConsistencyState.PIE_CENTER_CONTENT);
+  }
+
+  if (this.hasInvalidationState(anychart.ConsistencyState.BOUNDS)) {
+    this.calculateBounds_(bounds);
+
+    if (this.centerContent_ && goog.isFunction(this.centerContent_.bounds)) {
+      this.centerContent_.bounds(this.centerContentBounds_);
+      this.realCenterContent_.zIndex(1000);
+      this.centerContent_.resumeSignalsDispatching(true);
+      this.centerContent_.draw();
+    }
+    this.invalidate(anychart.ConsistencyState.APPEARANCE | anychart.ConsistencyState.PIE_LABELS);
   }
 
   if (this.hasInvalidationState(anychart.ConsistencyState.APPEARANCE)) {
