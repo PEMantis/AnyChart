@@ -5009,6 +5009,7 @@ anychart.pieModule.Chart.PieOutsideLabelsDomain.prototype.calculate = function()
   proto['explodeSlice'] = proto.explodeSlice;//doc|ex
   proto['explodeSlices'] = proto.explodeSlices;
   //actual
+  proto['centerContent'] = proto.centerContent;
   proto['group'] = proto.group;//doc|ex|non-tr
   proto['data'] = proto.data;//doc|ex|
   proto['labels'] = proto.labels;//doc|ex
