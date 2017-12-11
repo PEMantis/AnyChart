@@ -158,7 +158,8 @@ anychart.pieModule.Chart = function(opt_data, opt_csvSettings) {
     ['outsideLabelsCriticalAngle', anychart.ConsistencyState.PIE_LABELS, anychart.Signal.NEEDS_REDRAW],
     ['forceHoverLabels', anychart.ConsistencyState.PIE_LABELS, anychart.Signal.NEEDS_REDRAW],
     ['connectorStroke', anychart.ConsistencyState.APPEARANCE, anychart.Signal.NEEDS_REDRAW],
-    ['mode3d', anychart.ConsistencyState.APPEARANCE | anychart.ConsistencyState.PIE_LABELS, anychart.Signal.NEEDS_REDRAW]
+    ['mode3d', anychart.ConsistencyState.APPEARANCE | anychart.ConsistencyState.PIE_LABELS, anychart.Signal.NEEDS_REDRAW],
+    ['centerContentFill', anychart.ConsistencyState.APPEARANCE, anychart.Signal.NEEDS_REDRAW]
   ]);
 
   var normalDescriptorsMeta = {};
@@ -302,6 +303,20 @@ anychart.pieModule.Chart.ZINDEX_HATCH_FILL = 31;
  * @type {number}
  */
 anychart.pieModule.Chart.ZINDEX_LABEL = 32;
+
+
+/**
+ * Center content bg z-index in root layer.
+ * @type {number}
+ */
+anychart.pieModule.Chart.ZINDEX_CENTER_CONTENT_BG = 20;
+
+
+/**
+ * Center content layer z-index in root layer.
+ * @type {number}
+ */
+anychart.pieModule.Chart.ZINDEX_CENTER_CONTENT_LAYER = 25;
 
 
 /**
@@ -467,6 +482,11 @@ anychart.pieModule.Chart.PROPERTY_DESCRIPTORS = (function() {
       anychart.enums.PropertyHandlerType.SINGLE_ARG,
       'mode3d',
       anychart.core.settings.booleanNormalizer);
+  anychart.core.settings.createDescriptor(
+      map,
+      anychart.enums.PropertyHandlerType.MULTI_ARG,
+      'centerContentFill',
+      anychart.core.settings.fillNormalizer);
 
   return map;
 })();
@@ -2069,7 +2089,7 @@ anychart.pieModule.Chart.prototype.drawContent = function(bounds) {
       // } else {
       //   this.realCenterContent_.container(this.rootElement);
       // }
-      this.realCenterContent_.zIndex(1000);
+      this.realCenterContent_.zIndex(anychart.pieModule.Chart.ZINDEX_CENTER_CONTENT_LAYER);
     }
 
     this.markConsistent(anychart.ConsistencyState.PIE_CENTER_CONTENT);
@@ -2256,6 +2276,18 @@ anychart.pieModule.Chart.prototype.drawContent = function(bounds) {
       }
     }
 
+    if (this.innerRadiusValue_) {
+      var centerContentFill = /** @type {acgraph.vector.Stroke} */ (this.getOption('centerContentFill'));
+      if (!this.centerContentBg_)
+        this.centerContentBg_ = acgraph.circle();
+
+      this.centerContentBg_
+          .parent(this.rootElement)
+          .zIndex(anychart.pieModule.Chart.ZINDEX_CENTER_CONTENT_BG)
+          .stroke(null)
+          .fill(centerContentFill)
+    }
+
     if (this.hoveredLabelConnectorPath_)
       this.hoveredLabelConnectorPath_.stroke(connectorStroke);
 
@@ -2279,7 +2311,12 @@ anychart.pieModule.Chart.prototype.drawContent = function(bounds) {
       this.centerContent_.resumeSignalsDispatching(true);
       this.centerContent_.draw();
 
-      this.realCenterContent_.clip(this.centerContentBounds_);
+      this.realCenterContent_.clip(acgraph.circle(this.cx_, this.cy_, this.innerRadiusValue_));
+      // this.realCenterContent_.clip(this.centerContentBounds_);
+    }
+
+    if (this.centerContentBg_) {
+      this.centerContentBg_.centerX(this.cx_).centerY(this.cy_).radius(this.innerRadiusValue_)
     }
   }
 };
@@ -3806,7 +3843,7 @@ anychart.pieModule.Chart.prototype.getCenterPoint = function() {
  * @return {anychart.math.Rect}
  */
 anychart.pieModule.Chart.prototype.getCenterContentBounds = function() {
-  return this.centerContentBounds_.clone();
+  return this.centerContentBounds_ ? this.centerContentBounds_.clone() : anychart.math.rect(0, 0, 0, 0);
 };
 
 
