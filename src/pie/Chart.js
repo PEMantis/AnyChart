@@ -1136,7 +1136,7 @@ anychart.pieModule.Chart.prototype.centerContent = function(opt_value) {
         this.contentToClear_ = this.realCenterContent_;
 
         this.realCenterContent_ = acgraph.layer();
-        this.realCenterContent_.addChild(/** @type {!acgraph.vector.Element} */(this.centerContent_));
+        this.realCenterContent_.addChild(/** @type {!acgraph.vector.Element} */(opt_value));
       } else {
         this.contentToClear_ = this.centerContent_;
 
@@ -1147,7 +1147,8 @@ anychart.pieModule.Chart.prototype.centerContent = function(opt_value) {
 
       this.centerContent_ = /** @type {acgraph.vector.Element|anychart.core.VisualBase|string} */(opt_value);
 
-      this.invalidate(anychart.ConsistencyState.PIE_CENTER_CONTENT, anychart.Signal.NEEDS_REDRAW);
+      this.invalidate(anychart.ConsistencyState.PIE_CENTER_CONTENT | anychart.ConsistencyState.BOUNDS,
+          anychart.Signal.NEEDS_REDRAW);
     }
     return this;
   }
@@ -2054,15 +2055,9 @@ anychart.pieModule.Chart.prototype.drawContent = function(bounds) {
             if (marker.parentMarkersFactory())
               marker.parentMarkersFactory().clear(marker.getIndex());
           } else if (anychart.utils.instanceOf(content, anychart.core.VisualBase)) {
-            // if (content.isChart && content.isChart()) {
-            //   var chart = /** @type {anychart.core.Chart} */(content);
-            //   chart.autoRedraw(chart.originalAutoRedraw);
-            // }
             content.container(null);
             content.remove();
-            // no draw here to avoid drawing in to a null container
           }
-          content.unlistenSignals(this.handleContentInvalidation_);
           content.resumeSignalsDispatching(false);
         }
 
@@ -2070,7 +2065,7 @@ anychart.pieModule.Chart.prototype.drawContent = function(bounds) {
       }
       // var contentIsGraphicsElement = anychart.utils.instanceOf(this.realCenterContent_, acgraph.vector.Element);
       // if (contentIsGraphicsElement) {
-        this.realCenterContent_.parent(this.rootElement);
+      this.realCenterContent_.parent(this.rootElement);
       // } else {
       //   this.realCenterContent_.container(this.rootElement);
       // }
@@ -2268,10 +2263,23 @@ anychart.pieModule.Chart.prototype.drawContent = function(bounds) {
   }
 
   if (this.hasInvalidationState(anychart.ConsistencyState.BOUNDS)) {
-    if (this.centerContent_ && goog.isFunction(this.centerContent_.bounds)) {
-      this.centerContent_.bounds(this.centerContentBounds_);
+    if (anychart.utils.instanceOf(this.centerContent_, acgraph.vector.Element)) {
+      var bb = this.realCenterContent_.getBounds();
+
+      var ratio = Math.min(this.centerContentBounds_.width / bb.width, this.centerContentBounds_.height / bb.height );
+      var x = (this.centerContentBounds_.width - ratio * bb.width) / 2;
+      var y = (this.centerContentBounds_.height - ratio * bb.height) / 2;
+
+      this.realCenterContent_.scale(ratio, ratio);
+      this.realCenterContent_.setPosition(this.centerContentBounds_.left + x, this.centerContentBounds_.top + y);
+
+      this.realCenterContent_.clip(null);
+    } else if (anychart.utils.instanceOf(this.centerContent_, anychart.core.VisualBase)) {
+      this.centerContent_.parentBounds(this.centerContentBounds_);
       this.centerContent_.resumeSignalsDispatching(true);
       this.centerContent_.draw();
+
+      this.realCenterContent_.clip(this.centerContentBounds_);
     }
   }
 };
@@ -3794,6 +3802,15 @@ anychart.pieModule.Chart.prototype.getCenterPoint = function() {
 
 
 /**
+ * Returns pie center content bounds.
+ * @return {anychart.math.Rect}
+ */
+anychart.pieModule.Chart.prototype.getCenterContentBounds = function() {
+  return this.centerContentBounds_.clone();
+};
+
+
+/**
  * Getter for the current pie pixel outer radius.<br/>
  * <b>Note:</b> Works only after {@link anychart.pieModule.Chart#draw} is called.
  * @return {number} Pixel value of the pie radius.
@@ -5018,6 +5035,7 @@ anychart.pieModule.Chart.PieOutsideLabelsDomain.prototype.calculate = function()
   proto['explodeSlices'] = proto.explodeSlices;
   //actual
   proto['centerContent'] = proto.centerContent;
+  proto['getCenterContentBounds'] = proto.getCenterContentBounds;
   proto['group'] = proto.group;//doc|ex|non-tr
   proto['data'] = proto.data;//doc|ex|
   proto['labels'] = proto.labels;//doc|ex

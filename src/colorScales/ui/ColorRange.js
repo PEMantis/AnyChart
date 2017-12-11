@@ -826,7 +826,7 @@ anychart.colorScalesModule.ui.ColorRange.prototype.draw = function() {
 anychart.colorScalesModule.ui.ColorRange.prototype.handleMouseClick = function(event) {
   var scale = this.scale();
   var target = /** @type {anychart.mapModule.Series|anychart.treemapModule.Chart|anychart.tagCloudModule.Chart} */(this.target_);
-  var targetScale = target.colorScale() || target.getColorScale();
+  var targetScale = target && (target.colorScale() || target.getColorScale());
 
   if (this.enabled() && scale && target && target.enabled() && targetScale == scale) {
     var lineBounds = this.line.getBounds();
@@ -922,7 +922,7 @@ anychart.colorScalesModule.ui.ColorRange.prototype.handleMouseClick = function(e
 anychart.colorScalesModule.ui.ColorRange.prototype.handleMouseOverAndMove = function(event) {
   var scale = this.scale();
   var target = /** @type {anychart.mapModule.Series|anychart.treemapModule.Chart|anychart.tagCloudModule.Chart} */(this.target_);
-  var targetScale = target.colorScale() || target.getColorScale();
+  var targetScale = target && (target.colorScale() || target.getColorScale());
   if (this.enabled() && scale && target && target.enabled() && targetScale == scale) {
     var lineBounds = this.line.getBounds();
     var x, y, min, ratio, value;
