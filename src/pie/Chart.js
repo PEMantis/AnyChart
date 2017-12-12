@@ -3808,7 +3808,7 @@ anychart.pieModule.Chart.prototype.getCenterAngle_ = function(startAngle, endAng
  */
 anychart.pieModule.Chart.prototype.getCenterPoint = function() {
   anychart.core.reporting.warning(anychart.enums.WarningCode.DEPRECATED, null, ['getCenterPoint()', 'center().getPoint()'], true);
-  return {'x': this.cx, 'y': this.cy};
+  return this.center().getPoint();
 };
 
 
@@ -4819,7 +4819,7 @@ anychart.pieModule.Chart.PieOutsideLabelsDomain.prototype.calcDomain = function(
   this.dropBoundsCache();
 
   var explode = this.explode;
-  var pieCenter = this.pie.getCenterPoint();
+  var pieCenter = this.pie.center().getPoint();
   var piePxRadius = this.pie.getPixelRadius() + explode;
 
   var cx = pieCenter['x'], cy = pieCenter['y'];
