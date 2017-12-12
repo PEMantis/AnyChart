@@ -3804,18 +3804,11 @@ anychart.pieModule.Chart.prototype.getCenterAngle_ = function(startAngle, endAng
  *      .height(2*pieInnerRadius)
  *      .draw();
  * @return {anychart.math.Coordinate} XY coordinate of the current pie chart center.
+ * @deprecated since 8.2.0 use pie.center.getPoint() instead. DVF-3445
  */
 anychart.pieModule.Chart.prototype.getCenterPoint = function() {
+  anychart.core.reporting.warning(anychart.enums.WarningCode.DEPRECATED, null, ['getCenterPoint()', 'center().getPoint()'], true);
   return {'x': this.cx, 'y': this.cy};
-};
-
-
-/**
- * Returns pie center content bounds.
- * @return {anychart.math.Rect}
- */
-anychart.pieModule.Chart.prototype.getCenterContentBounds = function() {
-  return this.centerContentBounds ? this.centerContentBounds.clone() : anychart.math.rect(0, 0, 0, 0);
 };
 
 

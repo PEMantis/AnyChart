@@ -154,7 +154,7 @@ anychart.ganttModule.BaseGrid = function(opt_controller, opt_isResource) {
    * @type {acgraph.vector.Layer}
    * @private
    */
-  this.contentLayer = null;
+  this.contentLayer_ = null;
 
   /**
    * Edit layer. Contains edit elements.
@@ -1067,12 +1067,12 @@ anychart.ganttModule.BaseGrid.prototype.getDrawLayer = function() {
  * @return {acgraph.vector.Layer}
  */
 anychart.ganttModule.BaseGrid.prototype.getContentLayer = function() {
-  if (!this.contentLayer) {
-    this.contentLayer = /** @type {acgraph.vector.Layer} */ (acgraph.layer());
-    this.contentLayer.zIndex(anychart.ganttModule.BaseGrid.CONTENT_Z_INDEX);
-    this.registerDisposable(this.contentLayer);
+  if (!this.contentLayer_) {
+    this.contentLayer_ = /** @type {acgraph.vector.Layer} */ (acgraph.layer());
+    this.contentLayer_.zIndex(anychart.ganttModule.BaseGrid.CONTENT_Z_INDEX);
+    this.registerDisposable(this.contentLayer_);
   }
-  return this.contentLayer;
+  return this.contentLayer_;
 };
 
 

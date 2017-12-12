@@ -213,7 +213,7 @@ anychart.tableModule.Table.prototype.layer_ = null;
  * @type {acgraph.vector.Layer}
  * @private
  */
-anychart.tableModule.Table.prototype.contentLayer = null;
+anychart.tableModule.Table.prototype.contentLayer_ = null;
 
 
 /**
@@ -244,7 +244,7 @@ anychart.tableModule.Table.prototype.pathsPool_ = null;
  * @type {Array.<acgraph.vector.Element|anychart.core.VisualBase>}
  * @private
  */
-anychart.tableModule.Table.prototype.contentToClear = null;
+anychart.tableModule.Table.prototype.contentToClear_ = null;
 
 
 /**
@@ -681,7 +681,7 @@ anychart.tableModule.Table.prototype.draw = function() {
 
   if (!this.layer_) {
     this.layer_ = acgraph.layer();
-    this.contentLayer = this.layer_.layer();
+    this.contentLayer_ = this.layer_.layer();
   }
 
   var stage = this.layer_.getStage();
@@ -1345,9 +1345,9 @@ anychart.tableModule.Table.prototype.checkBorders_ = function() {
 anychart.tableModule.Table.prototype.checkContent_ = function() {
   var content, bounds, label, marker, chart, position, positionProvider, cell;
   if (this.hasInvalidationState(anychart.ConsistencyState.TABLE_CONTENT)) {
-    if (this.contentToClear) {
-      while (this.contentToClear.length) {
-        content = this.contentToClear.pop();
+    if (this.contentToClear_) {
+      while (this.contentToClear_.length) {
+        content = this.contentToClear_.pop();
         if (anychart.utils.instanceOf(content, acgraph.vector.Element)) {
           content.remove();
         } else {
@@ -1425,7 +1425,7 @@ anychart.tableModule.Table.prototype.checkContent_ = function() {
             bounds = padding.tightenBounds(bounds);
             var settings;
             if (contentIsGraphicsElement) {
-              content.parent(this.contentLayer);
+              content.parent(this.contentLayer_);
               var realContent = (/** @type {acgraph.vector.Layer} */(content)).getChildAt(0);
               var hAlign = this.resolveFullProperty_('hAlign', cell, rowObj, colObj, anychart.enums.HAlign.START);
               var vAlign = this.resolveFullProperty_('vAlign', cell, rowObj, colObj, anychart.enums.VAlign.TOP);
@@ -1466,7 +1466,7 @@ anychart.tableModule.Table.prototype.checkContent_ = function() {
               realContent.setPosition(left, top);
               content.clip(bounds);
             } else {
-              content.container(this.contentLayer);
+              content.container(this.contentLayer_);
               if (anychart.utils.instanceOf(content, anychart.core.ui.LabelsFactory.Label)) {
                 label = /** @type {anychart.core.ui.LabelsFactory.Label} */(content);
                 label.positionProvider({
@@ -1534,7 +1534,7 @@ anychart.tableModule.Table.prototype.checkContent_ = function() {
     if (this.labelsFactory_) {
       this.labelsFactory_.suspendSignalsDispatching();
       this.labelsFactory_.setup(this.settingsObj);
-      this.labelsFactory_.container(this.contentLayer);
+      this.labelsFactory_.container(this.contentLayer_);
       this.labelsFactory_.parentBounds(/** @type {anychart.math.Rect} */(this.getPixelBounds()));
       this.labelsFactory_.draw();
       this.labelsFactory_.resumeSignalsDispatching(false);
@@ -2155,8 +2155,8 @@ anychart.tableModule.Table.prototype.getCellBounds = function(row, col, rowSpan,
  * @param {acgraph.vector.Element|anychart.core.VisualBase} content
  */
 anychart.tableModule.Table.prototype.clearContent = function(content) {
-  this.contentToClear = this.contentToClear || [];
-  this.contentToClear.push(content);
+  this.contentToClear_ = this.contentToClear_ || [];
+  this.contentToClear_.push(content);
 };
 
 
@@ -2408,7 +2408,7 @@ anychart.tableModule.Table.prototype.disposeInternal = function() {
       this.fillPaths_, this.borderPaths_, this.pathsPool_);
   goog.dispose(this.labelsFactory_);
   goog.dispose(this.layer_);
-  goog.dispose(this.contentLayer);
+  goog.dispose(this.contentLayer_);
   delete this.settingsObj;
   anychart.tableModule.Table.base(this, 'disposeInternal');
 };
