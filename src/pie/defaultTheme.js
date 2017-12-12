@@ -20,7 +20,10 @@ goog.mixin(goog.global['anychart']['themes']['defaultTheme'], {
     'startAngle': 0,
     'outsideLabelsCriticalAngle': 60,
     'insideLabelsOffset': '50%',
-    'centerContentFill': null,
+    'center': {
+      'fill': 'none',
+      'stroke': 'none'
+    },
     'normal': {
       'labels': {
         'format': anychart.core.defaultTheme.PERCENT_VALUE_TOKEN + '%'
