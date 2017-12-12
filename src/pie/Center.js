@@ -225,6 +225,7 @@ anychart.pieModule.Center.prototype.clearContent = function() {
   if (this.contentToClear) {
     var content = this.contentToClear;
     if (anychart.utils.instanceOf(content, acgraph.vector.Element)) {
+      this.contentLayer.unlisten(acgraph.vector.Stage.EventType.RENDER_START, this.pie.centerContentChangesListener, false, this.pie);
       content.remove();
     } else {
       content.suspendSignalsDispatching();
@@ -240,6 +241,7 @@ anychart.pieModule.Center.prototype.clearContent = function() {
         content.container(null);
         content.remove();
       }
+      this.realContent.unlisten(anychart.enums.EventType.CHART_DRAW, this.pie.centerContentChangesListener, false, this.pie);
       content.resumeSignalsDispatching(false);
     }
     this.contentToClear = null;

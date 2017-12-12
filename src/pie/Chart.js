@@ -2030,6 +2030,14 @@ anychart.pieModule.Chart.prototype.beforeDraw = function() {
 
 
 /**
+ * Listener for graphics elements rendering.
+ */
+anychart.pieModule.Chart.prototype.centerContentChangesListener = function() {
+  this.invalidate(anychart.ConsistencyState.BOUNDS, anychart.Signal.NEEDS_REDRAW);
+};
+
+
+/**
  * Drawing content.
  * @param {anychart.math.Rect} bounds Bounds of content area.
  */
@@ -2054,8 +2062,17 @@ anychart.pieModule.Chart.prototype.drawContent = function(bounds) {
       this.center_.clearContent();
       this.center_.contentLayer.parent(this.rootElement);
       this.center_.contentLayer.zIndex(anychart.pieModule.Chart.ZINDEX_CENTER_CONTENT_LAYER);
-    }
 
+      if (this.center_.contentLayer) {
+        if (anychart.utils.instanceOf(this.center_.realContent, acgraph.vector.Element)) {
+          this.center_.contentLayer.listen(acgraph.vector.Stage.EventType.RENDER_START,
+              this.centerContentChangesListener, false, this);
+        } else if (anychart.utils.instanceOf(this.center_.realContent, anychart.core.VisualBase)) {
+          this.center_.realContent.listen(anychart.enums.EventType.CHART_DRAW,
+              this.centerContentChangesListener, false, this);
+        }
+      }
+    }
     this.markConsistent(anychart.ConsistencyState.PIE_CENTER_CONTENT);
   }
 
@@ -2277,8 +2294,9 @@ anychart.pieModule.Chart.prototype.drawContent = function(bounds) {
       this.center_.contentLayer.setTransformationMatrix(ratio, 0, 0, ratio, dx, dy);
       this.center_.contentLayer.clip(null);
     } else if (anychart.utils.instanceOf(this.center_.realContent, anychart.core.VisualBase)) {
+      this.center_.realContent.suspendSignalsDispatching();
       this.center_.realContent.parentBounds(this.centerContentBounds);
-      this.center_.realContent.resumeSignalsDispatching(true);
+      this.center_.realContent.resumeSignalsDispatching(false);
       this.center_.realContent.draw();
 
       this.center_.contentLayer.setTransformationMatrix(1, 0, 0, 1, 0, 0);
