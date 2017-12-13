@@ -841,10 +841,11 @@ anychart.pieModule.Chart.getColorResolver = function(colorName, colorType, canBe
  * @param {anychart.pieModule.Chart} pie
  * @param {number} state
  * @param {boolean=} opt_ignorePointSettings
+ * @param {(acgraph.vector.Fill|Function)=} opt_baseColor State where target will be get base color.
  * @return {*}
  * @private
  */
-anychart.pieModule.Chart.getColor_ = function(colorName, normalizer, isHatchFill, canBeHoveredSelected, pie, state, opt_ignorePointSettings) {
+anychart.pieModule.Chart.getColor_ = function(colorName, normalizer, isHatchFill, canBeHoveredSelected, pie, state, opt_ignorePointSettings, opt_baseColor) {
   var stateColor, context;
   //state = anychart.core.utils.InteractivityState.clarifyState(state);
   if (state != anychart.PointState.NORMAL && canBeHoveredSelected) {
@@ -861,7 +862,7 @@ anychart.pieModule.Chart.getColor_ = function(colorName, normalizer, isHatchFill
     }
   }
   // we can get here only if state color is undefined or is a function
-  var color = pie.resolveOption(colorName, 0, pie.getIterator(), normalizer, false, void 0, opt_ignorePointSettings);
+  var color = opt_baseColor || pie.resolveOption(colorName, 0, pie.getIterator(), normalizer, false, void 0, opt_ignorePointSettings);
   var isAqua = goog.isString(color) && color == 'aquastyle';
   if (isHatchFill && color === true)
     color = normalizer(pie.getAutoHatchFill());
@@ -1013,7 +1014,7 @@ anychart.pieModule.Chart.prototype.colorizeSlice = function(pointState) {
     var slice = /** @type {acgraph.vector.Path} */ (this.getIterator().meta('slice'));
     if (goog.isDef(slice)) {
       var fillResolver = anychart.pieModule.Chart.getColorResolver('fill', anychart.enums.ColorType.FILL, true);
-      var fillColor = fillResolver(this, pointState, false, true);
+      var fillColor = fillResolver(this, pointState, false);
       if (this.isRadialGradientMode_(fillColor) && goog.isNull(fillColor.mode)) {
         //fillColor = /** @type {!acgraph.vector.Fill} */(goog.object.clone(/** @type {Object} */(fillColor)));
         fillColor.mode = this.pieBounds_ ? this.pieBounds_ : null;
@@ -1021,7 +1022,7 @@ anychart.pieModule.Chart.prototype.colorizeSlice = function(pointState) {
       slice.fill(fillColor);
 
       var strokeResolver = anychart.pieModule.Chart.getColorResolver('stroke', anychart.enums.ColorType.STROKE, true);
-      var strokeColor = strokeResolver(this, pointState, false, true);
+      var strokeColor = strokeResolver(this, pointState, false);
       if (this.isRadialGradientMode_(strokeColor) && goog.isNull(strokeColor.mode)) {
         strokeColor.mode = this.pieBounds_ ? this.pieBounds_ : null;
       }
@@ -1031,14 +1032,14 @@ anychart.pieModule.Chart.prototype.colorizeSlice = function(pointState) {
       var sliceOutline = /** @type {acgraph.vector.Path} */ (this.getIterator().meta('sliceOutline'));
       if (sliceOutline) {
         fillResolver = anychart.pieModule.Chart.getColorResolver('outline.fill', anychart.enums.ColorType.FILL, true);
-        fillColor = fillResolver(this, pointState, false, true);
+        fillColor = fillResolver(this, pointState, false, fillColor);
         if (this.isRadialGradientMode_(fillColor) && goog.isNull(fillColor.mode)) {
           //fillColor = /** @type {!acgraph.vector.Fill} */(goog.object.clone(/** @type {Object} */(fillColor)));
           fillColor.mode = this.pieBounds_ ? this.pieBounds_ : null;
         }
 
         strokeResolver = anychart.pieModule.Chart.getColorResolver('outline.stroke', anychart.enums.ColorType.STROKE, true);
-        strokeColor = strokeResolver(this, pointState, false, true);
+        strokeColor = strokeResolver(this, pointState, false, strokeColor);
         if (this.isRadialGradientMode_(strokeColor) && goog.isNull(strokeColor.mode)) {
           strokeColor.mode = this.pieBounds_ ? this.pieBounds_ : null;
         }
@@ -2015,13 +2016,11 @@ anychart.pieModule.Chart.prototype.drawContent = function(bounds) {
         this.state.setPointState(/** @type {anychart.PointState} */(state), iterator.getIndex());
       }
 
-      iterator.meta('start', start).meta('sweep', sweep);
-      // if (!goog.isDef(exploded = iterator.meta('exploded'))) {
-      //   exploded = !!this.getExplode();
-      //   iterator.meta('exploded', exploded);
-      //   if (exploded)
-      //     this.state.setPointState(anychart.PointState.SELECT, iterator.getIndex());
-      // }
+      iterator
+          .meta('start', start)
+          .meta('sweep', sweep)
+          .meta('explode', this.getExplode(state));
+
       start += sweep;
     }
   }
@@ -4311,9 +4310,10 @@ anychart.pieModule.Chart.prototype.finalizePointAppearance = function(opt_value)
   var iterator = this.getIterator();
   var sweep = /** @type {number} */(iterator.meta('sweep'));
   var value = /** @type {number|string|null|undefined} */(iterator.get('value'));
+  var currIndex = iterator.getIndex();
 
   // if only 1 point in Pie was drawn - forbid to explode it
-  if (iterator.getRowsCount() == 1 || sweep == 360 || this.isMissing_(value))
+  if (iterator.getRowsCount() == 1 || sweep == 360 || (this.isMissing_(value) && currIndex != iterator.getRowsCount()))
     return;
 
   var explodeChanged = !!opt_value;
@@ -4327,14 +4327,11 @@ anychart.pieModule.Chart.prototype.finalizePointAppearance = function(opt_value)
       this.labels().draw();
       this.labels().resumeSignalsDispatching(false);
     } else {
-      var currIndex = iterator.getIndex();
       this.labels().clear();
       iterator.select(currIndex);
     }
   } else {
-    var index = iterator.getIndex();
-    var pointState = this.state.getPointStateByIndex(index);
-
+    var pointState = this.state.getPointStateByIndex(currIndex);
     this.drawLabel_(pointState);
     this.labels().draw();
   }
