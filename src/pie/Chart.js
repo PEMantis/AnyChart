@@ -2023,26 +2023,25 @@ anychart.pieModule.Chart.prototype.updateBounds = function() {
 };
 
 
-anychart.pieModule.Chart.prototype.transformCenterContent = function() {
-  //Center content bounding box
-  var ccbb = this.center_.realContent.getBounds();
+/**
+ * Change center content transformation.
+ * @param {anychart.math.Rect} contentBoundingBox .
+ */
+anychart.pieModule.Chart.prototype.transformCenterContent = function(contentBoundingBox) {
+  this.contentBoundingBox_ = contentBoundingBox;
 
-  if (!anychart.math.Rect.equals(ccbb, this.contentBoundingBox_)) {
-    this.contentBoundingBox_ = ccbb;
+  var ratio = Math.min(this.centerContentBounds.width / this.contentBoundingBox_.width,
+      this.centerContentBounds.height / this.contentBoundingBox_.height);
+  if (!isFinite(ratio))
+    ratio = 0;
 
-    var ratio = Math.min(this.centerContentBounds.width / this.contentBoundingBox_.width,
-        this.centerContentBounds.height / this.contentBoundingBox_.height);
-    if (!isFinite(ratio))
-      ratio = 0;
+  var txCenterContentWidth = ratio * this.contentBoundingBox_.width;
+  var txCenterContentHeight = ratio * this.contentBoundingBox_.height;
 
-    var txCenterContentWidth = ratio * this.contentBoundingBox_.width;
-    var txCenterContentHeight = ratio * this.contentBoundingBox_.height;
+  var dx = (this.centerContentBounds.left - this.contentBoundingBox_.left * ratio) + (this.centerContentBounds.width - txCenterContentWidth) / 2;
+  var dy = (this.centerContentBounds.top - this.contentBoundingBox_.top * ratio) + (this.centerContentBounds.height - txCenterContentHeight) / 2;
 
-    var dx = (this.centerContentBounds.left - this.contentBoundingBox_.left * ratio) + (this.centerContentBounds.width - txCenterContentWidth) / 2;
-    var dy = (this.centerContentBounds.top - this.contentBoundingBox_.top * ratio) + (this.centerContentBounds.height - txCenterContentHeight) / 2;
-
-    this.center_.contentLayer.setTransformationMatrix(ratio, 0, 0, ratio, dx, dy);
-  }
+  this.center_.contentLayer.setTransformationMatrix(ratio, 0, 0, ratio, dx, dy);
 };
 
 
@@ -2059,7 +2058,19 @@ anychart.pieModule.Chart.prototype.beforeDraw = function() {
 /**
  * Listener for graphics elements rendering.
  */
-anychart.pieModule.Chart.prototype.centerContentChangesListener = function() {
+anychart.pieModule.Chart.prototype.acgraphElemetnsListener = function() {
+  var ccbb = this.center_.realContent.getBounds();
+
+  if (!anychart.math.Rect.equals(ccbb, this.contentBoundingBox_)) {
+    this.transformCenterContent(ccbb);
+  }
+};
+
+
+/**
+ * Listener for graphics elements rendering.
+ */
+anychart.pieModule.Chart.prototype.chartsListener = function() {
   this.invalidate(anychart.ConsistencyState.BOUNDS, anychart.Signal.NEEDS_REDRAW);
 };
 
@@ -2092,11 +2103,11 @@ anychart.pieModule.Chart.prototype.drawContent = function(bounds) {
 
       if (this.center_.contentLayer) {
         if (anychart.utils.instanceOf(this.center_.realContent, acgraph.vector.Element)) {
-          this.center_.contentLayer.getStage().listen(acgraph.vector.Stage.EventType.RENDER_START,
-              this.transformCenterContent, false, this);
+          this.center_.contentLayer.getStage().listen(acgraph.vector.Stage.EventType.RENDER_FINISH,
+              this.acgraphElemetnsListener, false, this);
         } else if (anychart.utils.instanceOf(this.center_.realContent, anychart.core.VisualBase)) {
           this.center_.contentLayer.listen(anychart.enums.EventType.CHART_DRAW,
-              this.centerContentChangesListener, false, this);
+              this.chartsListener, false, this);
         }
       }
     }
@@ -2309,7 +2320,8 @@ anychart.pieModule.Chart.prototype.drawContent = function(bounds) {
 
   if (this.hasInvalidationState(anychart.ConsistencyState.BOUNDS)) {
     if (anychart.utils.instanceOf(this.center_.realContent, acgraph.vector.Element)) {
-      this.transformCenterContent();
+      var ccbb = this.center_.realContent.getBounds();
+      this.transformCenterContent(ccbb);
       this.center_.contentLayer.clip(null);
     } else if (anychart.utils.instanceOf(this.center_.realContent, anychart.core.VisualBase)) {
       this.center_.realContent.suspendSignalsDispatching();
