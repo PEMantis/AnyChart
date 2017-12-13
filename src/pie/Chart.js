@@ -2020,6 +2020,29 @@ anychart.pieModule.Chart.prototype.updateBounds = function() {
 };
 
 
+anychart.pieModule.Chart.prototype.transformCenterContent = function() {
+  //Center content bounding box
+  var ccbb = this.center_.realContent.getBounds();
+
+  if (!anychart.math.Rect.equals(ccbb, this.contentBoundingBox_)) {
+    this.contentBoundingBox_ = ccbb;
+
+    var ratio = Math.min(this.centerContentBounds.width / this.contentBoundingBox_.width,
+        this.centerContentBounds.height / this.contentBoundingBox_.height);
+    if (!isFinite(ratio))
+      ratio = 0;
+
+    var txCenterContentWidth = ratio * this.contentBoundingBox_.width;
+    var txCenterContentHeight = ratio * this.contentBoundingBox_.height;
+
+    var dx = (this.centerContentBounds.left - this.contentBoundingBox_.left * ratio) + (this.centerContentBounds.width - txCenterContentWidth) / 2;
+    var dy = (this.centerContentBounds.top - this.contentBoundingBox_.top * ratio) + (this.centerContentBounds.height - txCenterContentHeight) / 2;
+
+    this.center_.contentLayer.setTransformationMatrix(ratio, 0, 0, ratio, dx, dy);
+  }
+};
+
+
 /**
  * @inheritDoc
  */
@@ -2066,10 +2089,10 @@ anychart.pieModule.Chart.prototype.drawContent = function(bounds) {
 
       if (this.center_.contentLayer) {
         if (anychart.utils.instanceOf(this.center_.realContent, acgraph.vector.Element)) {
-          this.center_.contentLayer.listen(acgraph.vector.Stage.EventType.RENDER_START,
-              this.centerContentChangesListener, false, this);
+          this.center_.contentLayer.getStage().listen(acgraph.vector.Stage.EventType.RENDER_START,
+              this.transformCenterContent, false, this);
         } else if (anychart.utils.instanceOf(this.center_.realContent, anychart.core.VisualBase)) {
-          this.center_.realContent.listen(anychart.enums.EventType.CHART_DRAW,
+          this.center_.contentLayer.listen(anychart.enums.EventType.CHART_DRAW,
               this.centerContentChangesListener, false, this);
         }
       }
@@ -2283,20 +2306,7 @@ anychart.pieModule.Chart.prototype.drawContent = function(bounds) {
 
   if (this.hasInvalidationState(anychart.ConsistencyState.BOUNDS)) {
     if (anychart.utils.instanceOf(this.center_.realContent, acgraph.vector.Element)) {
-      //Center content bounding box
-      var ccbb = this.center_.realContent.getBounds();
-
-      var ratio = Math.min(this.centerContentBounds.width / ccbb.width, this.centerContentBounds.height / ccbb.height);
-      if (!isFinite(ratio))
-        ratio = 0;
-
-      var txCenterContentWidth = ratio * ccbb.width;
-      var txCenterContentHeight = ratio * ccbb.height;
-
-      var dx = (this.centerContentBounds.left - ccbb.left * ratio) + (this.centerContentBounds.width - txCenterContentWidth) / 2;
-      var dy = (this.centerContentBounds.top - ccbb.top * ratio) + (this.centerContentBounds.height - txCenterContentHeight) / 2;
-
-      this.center_.contentLayer.setTransformationMatrix(ratio, 0, 0, ratio, dx, dy);
+      this.transformCenterContent();
       this.center_.contentLayer.clip(null);
     } else if (anychart.utils.instanceOf(this.center_.realContent, anychart.core.VisualBase)) {
       this.center_.realContent.suspendSignalsDispatching();
