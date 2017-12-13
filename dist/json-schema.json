@@ -5923,6 +5923,14 @@
             {"$ref": "#/definitions/disable"},
             {"$ref": "#/definitions/anychart.core.ui.LabelsFactory"}
           ]
+        },
+
+        "outline": {"$ref": "#/definitions/anychart.core.ui.Outline"},
+        "explode": {
+          "type": [
+            "string",
+            "number"
+          ]
         }
       }
     },
