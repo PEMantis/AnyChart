@@ -151,6 +151,21 @@ anychart.core.ui.Outline.prototype.setThemeSettings = function(config) {
 
 
 /** @inheritDoc */
+anychart.core.ui.Outline.prototype.setupSpecial = function(isDefault, var_args) {
+  var arg0 = arguments[1];
+
+  // if (goog.isBoolean(arg0) || goog.isNull(arg0)) {
+  //   if (isDefault) {
+  //     this.themeSettings['fill'] = arg0 ? ;
+  //     this.themeSettings['stroke'] = !!arg0;
+  //   }
+  //   return true;
+  // }
+  return false;
+};
+
+
+/** @inheritDoc */
 anychart.core.ui.Outline.prototype.setupByJSON = function(config, opt_default) {
   if (opt_default) {
     this.setThemeSettings(config);

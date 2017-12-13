@@ -41,13 +41,13 @@ goog.mixin(goog.global['anychart']['themes']['defaultTheme'], {
       'outline': {
         'width': 10,
         'offset': 0,
-        'fill': anychart.core.defaultTheme.returnLightenSourceColor50,
+        'fill': anychart.core.defaultTheme.returnSourceColor,
         'stroke': 'none'
       }
     },
     'selected': {
       'explode': '5%',
-      'fill': anychart.core.defaultTheme.returnLightenSourceColor,
+      'fill': anychart.core.defaultTheme.returnSourceColor,
       'stroke': 'none',
       'outline': {
         'width': 10,

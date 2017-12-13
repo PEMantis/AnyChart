@@ -878,14 +878,16 @@ anychart.pieModule.Chart.getColor_ = function(colorName, normalizer, isHatchFill
     }
   }
   // we can get here only if state color is undefined or is a function
-  var color = opt_baseColor || pie.resolveOption(colorName, 0, pie.getIterator(), normalizer, false, void 0, opt_ignorePointSettings);
+  var color = pie.resolveOption(colorName, 0, pie.getIterator(), normalizer, false, void 0, opt_ignorePointSettings);
+  var baseColor = goog.isDef(opt_baseColor) ? opt_baseColor : color;
+
   var isAqua = goog.isString(color) && color == 'aquastyle';
   if (isHatchFill && color === true)
     color = normalizer(pie.getAutoHatchFill());
   if (goog.isFunction(color)) {
     context = isHatchFill ?
         pie.getHatchFillResolutionContext(opt_ignorePointSettings) :
-        pie.getColorResolutionContext(void 0, opt_ignorePointSettings);
+        pie.getColorResolutionContext(baseColor, opt_ignorePointSettings);
     color = /** @type {acgraph.vector.Fill|acgraph.vector.Stroke|acgraph.vector.PatternFill} */(normalizer(color.call(context, context)));
   }
   if (isAqua) {
@@ -1030,7 +1032,7 @@ anychart.pieModule.Chart.prototype.colorizeSlice = function(pointState) {
     var slice = /** @type {acgraph.vector.Path} */ (this.getIterator().meta('slice'));
     if (goog.isDef(slice)) {
       var fillResolver = anychart.pieModule.Chart.getColorResolver('fill', anychart.enums.ColorType.FILL, true);
-      var fillColor = fillResolver(this, pointState, false);
+      var fillColor = fillResolver(this, pointState, false, null);
       if (this.isRadialGradientMode_(fillColor) && goog.isNull(fillColor.mode)) {
         //fillColor = /** @type {!acgraph.vector.Fill} */(goog.object.clone(/** @type {Object} */(fillColor)));
         fillColor.mode = this.pieBounds_ ? this.pieBounds_ : null;
@@ -1038,7 +1040,7 @@ anychart.pieModule.Chart.prototype.colorizeSlice = function(pointState) {
       slice.fill(fillColor);
 
       var strokeResolver = anychart.pieModule.Chart.getColorResolver('stroke', anychart.enums.ColorType.STROKE, true);
-      var strokeColor = strokeResolver(this, pointState, false);
+      var strokeColor = strokeResolver(this, pointState, false, null);
       if (this.isRadialGradientMode_(strokeColor) && goog.isNull(strokeColor.mode)) {
         strokeColor.mode = this.pieBounds_ ? this.pieBounds_ : null;
       }
@@ -1048,7 +1050,8 @@ anychart.pieModule.Chart.prototype.colorizeSlice = function(pointState) {
       var sliceOutline = /** @type {acgraph.vector.Path} */ (this.getIterator().meta('sliceOutline'));
       if (sliceOutline) {
         fillResolver = anychart.pieModule.Chart.getColorResolver('outline.fill', anychart.enums.ColorType.FILL, true);
-        fillColor = fillResolver(this, pointState, false, fillColor);
+        var fillColor_ = fillResolver(this, 0, false, fillColor);
+        fillColor = fillResolver(this, pointState, false, fillColor_);
         if (this.isRadialGradientMode_(fillColor) && goog.isNull(fillColor.mode)) {
           //fillColor = /** @type {!acgraph.vector.Fill} */(goog.object.clone(/** @type {Object} */(fillColor)));
           fillColor.mode = this.pieBounds_ ? this.pieBounds_ : null;
@@ -2933,7 +2936,7 @@ anychart.pieModule.Chart.prototype.updatePointOnAnimate = function(point) {
     hatchSlice.clear();
     hatchSlice.deserialize(slice.serialize());
     var hatchFillResolver = anychart.pieModule.Chart.getColorResolver('hatchFill', anychart.enums.ColorType.HATCH_FILL, true);
-    var hatchFill = hatchFillResolver(this, this.state.getPointStateByIndex(point.getIndex()), false);
+    var hatchFill = hatchFillResolver(this, this.state.getPointStateByIndex(point.getIndex()), false, null);
     hatchSlice.stroke(null).fill(hatchFill);
   }
 };
@@ -3969,9 +3972,9 @@ anychart.pieModule.Chart.prototype.createLegendItemsProvider = function(sourceMo
       },
       'iconType': anychart.enums.LegendItemIconType.SQUARE,
       'text': itemText,
-      'iconStroke': mode3d ? this.get3DStrokeColor() : /** @type {acgraph.vector.Stroke} */ (strokeResolver(this, anychart.PointState.NORMAL, false)),
-      'iconFill': mode3d ? this.get3DFillColor_(anychart.PointState.NORMAL) : /** @type {acgraph.vector.Fill} */ (fillResolver(this, anychart.PointState.NORMAL, false)),
-      'iconHatchFill': /** @type {acgraph.vector.HatchFill} */ (hatchFillResolver(this, anychart.PointState.NORMAL, false))
+      'iconStroke': mode3d ? this.get3DStrokeColor() : /** @type {acgraph.vector.Stroke} */ (strokeResolver(this, anychart.PointState.NORMAL, false, null)),
+      'iconFill': mode3d ? this.get3DFillColor_(anychart.PointState.NORMAL) : /** @type {acgraph.vector.Fill} */ (fillResolver(this, anychart.PointState.NORMAL, false, null)),
+      'iconHatchFill': /** @type {acgraph.vector.HatchFill} */ (hatchFillResolver(this, anychart.PointState.NORMAL, false, null))
     };
     goog.object.extend(obj, legendItem);
     obj['sourceUid'] = goog.getUid(this);
