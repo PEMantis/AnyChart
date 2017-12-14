@@ -35,7 +35,8 @@ anychart.core.ui.Outline = function() {
     ['stroke', anychart.ConsistencyState.ONLY_DISPATCHING, anychart.Signal.NEEDS_REDRAW],
     ['fill', anychart.ConsistencyState.ONLY_DISPATCHING, anychart.Signal.NEEDS_REDRAW],
     ['width', anychart.ConsistencyState.ONLY_DISPATCHING, anychart.Signal.NEEDS_REDRAW],
-    ['offset', anychart.ConsistencyState.ONLY_DISPATCHING, anychart.Signal.NEEDS_REDRAW]
+    ['offset', anychart.ConsistencyState.ONLY_DISPATCHING, anychart.Signal.NEEDS_REDRAW],
+    ['enabled', anychart.ConsistencyState.ONLY_DISPATCHING, anychart.Signal.ENABLED_STATE_CHANGED]
   ]);
 };
 goog.inherits(anychart.core.ui.Outline, anychart.core.Base);
@@ -134,6 +135,12 @@ anychart.core.ui.Outline.prototype.SIMPLE_PROPS_DESCRIPTORS = (function() {
       'offset',
       anychart.core.settings.numberOrPercentNormalizer);
 
+  anychart.core.settings.createDescriptor(
+      map,
+      anychart.enums.PropertyHandlerType.SINGLE_ARG,
+      'enabled',
+      anychart.core.settings.boolOrNullNormalizer);
+
   return map;
 })();
 anychart.core.settings.populate(anychart.core.ui.Outline, anychart.core.ui.Outline.prototype.SIMPLE_PROPS_DESCRIPTORS);
@@ -153,14 +160,23 @@ anychart.core.ui.Outline.prototype.setThemeSettings = function(config) {
 /** @inheritDoc */
 anychart.core.ui.Outline.prototype.setupSpecial = function(isDefault, var_args) {
   var arg0 = arguments[1];
-
-  // if (goog.isBoolean(arg0) || goog.isNull(arg0)) {
-  //   if (isDefault) {
-  //     this.themeSettings['fill'] = arg0 ? ;
-  //     this.themeSettings['stroke'] = !!arg0;
-  //   }
-  //   return true;
-  // }
+  if (goog.isBoolean(arg0) || goog.isNull(arg0)) {
+    if (isDefault)
+      this.themeSettings['enabled'] = !!arg0;
+    else
+      this.enabled(!!arg0);
+    return true;
+  } else if (goog.isString(arg0)) {
+    if (isDefault) {
+      this.themeSettings['fill'] = arg0;
+      this.themeSettings['stroke'] = null;
+      this.themeSettings['enabled'] = true;
+    } else {
+      this['fill'](arg0);
+      this['stroke'](null);
+      this.enabled(true);
+    }
+  }
   return false;
 };
 
@@ -171,6 +187,7 @@ anychart.core.ui.Outline.prototype.setupByJSON = function(config, opt_default) {
     this.setThemeSettings(config);
   } else {
     anychart.core.settings.deserialize(this, this.SIMPLE_PROPS_DESCRIPTORS, config);
+    this['enabled']('enabled' in config ? config['enabled'] : true);
   }
 };
 
@@ -200,5 +217,6 @@ anychart.core.ui.Outline.prototype.disposeInternal = function() {
   // proto['fill'] = proto.fill;
   // proto['width'] = proto.width;
   // proto['offset'] = proto.offset;
+  // proto['enabled'] = proto.enabled;
 })();
 //endregion

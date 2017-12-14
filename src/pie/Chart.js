@@ -871,7 +871,7 @@ anychart.pieModule.Chart.getColor_ = function(colorName, normalizer, isHatchFill
   if (goog.isFunction(color)) {
     context = isHatchFill ?
         pie.getHatchFillResolutionContext(opt_ignorePointSettings) :
-        pie.getColorResolutionContext(baseColor, opt_ignorePointSettings);
+        pie.getColorResolutionContext(/** @type {acgraph.vector.Fill|acgraph.vector.Stroke} */(baseColor), opt_ignorePointSettings);
     color = /** @type {acgraph.vector.Fill|acgraph.vector.Stroke|acgraph.vector.PatternFill} */(normalizer(color.call(context, context)));
   }
   if (isAqua) {
@@ -1013,7 +1013,8 @@ anychart.pieModule.Chart.prototype.colorizeSlice = function(pointState) {
     this.colorize3DSlice_(pointState);
 
   } else {
-    var slice = /** @type {acgraph.vector.Path} */ (this.getIterator().meta('slice'));
+    var iterator = this.getIterator();
+    var slice = /** @type {acgraph.vector.Path} */ (iterator.meta('slice'));
     if (goog.isDef(slice)) {
       var fillResolver = anychart.pieModule.Chart.getColorResolver('fill', anychart.enums.ColorType.FILL, true);
       var fillColor = fillResolver(this, pointState, false, null);
@@ -1033,18 +1034,26 @@ anychart.pieModule.Chart.prototype.colorizeSlice = function(pointState) {
 
       var sliceOutline = /** @type {acgraph.vector.Path} */ (this.getIterator().meta('sliceOutline'));
       if (sliceOutline) {
-        fillResolver = anychart.pieModule.Chart.getColorResolver('outline.fill', anychart.enums.ColorType.FILL, true);
-        var fillColor_ = fillResolver(this, 0, false, fillColor);
-        fillColor = fillResolver(this, pointState, false, fillColor_);
-        if (this.isRadialGradientMode_(fillColor) && goog.isNull(fillColor.mode)) {
-          //fillColor = /** @type {!acgraph.vector.Fill} */(goog.object.clone(/** @type {Object} */(fillColor)));
-          fillColor.mode = this.pieBounds_ ? this.pieBounds_ : null;
-        }
+        var outlineEnabled = this.resolveOption('outline.enabled', pointState, iterator, anychart.core.settings.boolOrNullNormalizer, false);
+        if (goog.isNull(outlineEnabled))
+          outlineEnabled = this.resolveOption('outline.enabled', 0, iterator, anychart.core.settings.boolOrNullNormalizer, false);
 
-        strokeResolver = anychart.pieModule.Chart.getColorResolver('outline.stroke', anychart.enums.ColorType.STROKE, true);
-        strokeColor = strokeResolver(this, pointState, false, strokeColor);
-        if (this.isRadialGradientMode_(strokeColor) && goog.isNull(strokeColor.mode)) {
-          strokeColor.mode = this.pieBounds_ ? this.pieBounds_ : null;
+        if (outlineEnabled) {
+          fillResolver = anychart.pieModule.Chart.getColorResolver('outline.fill', anychart.enums.ColorType.FILL, true);
+          var fillColor_ = fillResolver(this, 0, false, fillColor);
+          fillColor = fillResolver(this, pointState, false, fillColor_);
+          if (this.isRadialGradientMode_(fillColor) && goog.isNull(fillColor.mode)) {
+            //fillColor = /** @type {!acgraph.vector.Fill} */(goog.object.clone(/** @type {Object} */(fillColor)));
+            fillColor.mode = this.pieBounds_ ? this.pieBounds_ : null;
+          }
+
+          strokeResolver = anychart.pieModule.Chart.getColorResolver('outline.stroke', anychart.enums.ColorType.STROKE, true);
+          strokeColor = strokeResolver(this, pointState, false, strokeColor);
+          if (this.isRadialGradientMode_(strokeColor) && goog.isNull(strokeColor.mode)) {
+            strokeColor.mode = this.pieBounds_ ? this.pieBounds_ : null;
+          }
+        } else {
+          fillColor = strokeColor = 'none';
         }
 
         sliceOutline
@@ -2517,6 +2526,7 @@ anychart.pieModule.Chart.prototype.drawSlice_ = function(pointState, opt_update)
     outlineWidth = anychart.utils.normalizeSize(/** @type {number|string} */(outlineWidth), this.radiusValue_);
 
     var explode = this.getExplode(pointState);
+    iterator.meta('explode', explode);
 
     var angle = start + sweep / 2;
     var cos = Math.cos(goog.math.toRadians(angle));
@@ -2993,6 +3003,7 @@ anychart.pieModule.Chart.prototype.draw3DSlice_ = function(side, opt_update) {
   var pointState = this.state.getPointStateByIndex(side.index);
 
   var explode = this.getExplode(pointState);
+  iterator.meta('explode', explode);
 
   var cx = this.cx_;
   var cy = this.cy_;
@@ -4293,16 +4304,16 @@ anychart.pieModule.Chart.prototype.unselect = function(opt_indexOrIndexes) {
 
 /** @inheritDoc */
 anychart.pieModule.Chart.prototype.applyAppearanceToPoint = function(pointState, opt_value) {
+  var iterator = this.getIterator();
+  var currentPointExplode = /** @type {number} */(iterator.meta('explode'));
+
   var mode3d = /** @type {boolean} */ (this.getOption('mode3d'));
   if (mode3d) {
     this.prepare3DSlice_();
-    this.draw3DSlices_(this.getIterator().getIndex(), true);
+    this.draw3DSlices_(iterator.getIndex(), true);
   } else {
     this.drawSlice_(pointState, true);
   }
-
-  var iterator = this.getIterator();
-  var currentPointExplode = /** @type {number} */(iterator.meta('explode'));
 
   return opt_value || (currentPointExplode != this.getExplode(pointState));
 };
