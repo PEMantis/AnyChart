@@ -5,8 +5,8 @@ goog.require('anychart.core.settings.IObjectWithSettings');
 goog.require('anychart.core.ui.CircularLabelsFactory');
 goog.require('anychart.core.ui.LabelsFactory');
 goog.require('anychart.core.ui.MarkersFactory');
-goog.require('anychart.core.utils.Connector');
 goog.require('anychart.core.ui.Outline');
+goog.require('anychart.core.utils.Connector');
 
 
 
