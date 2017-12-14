@@ -6,6 +6,7 @@ goog.require('anychart.core.ui.CircularLabelsFactory');
 goog.require('anychart.core.ui.LabelsFactory');
 goog.require('anychart.core.ui.MarkersFactory');
 goog.require('anychart.core.ui.Outline');
+goog.require('anychart.core.utils.Connector');
 
 
 
@@ -38,8 +39,13 @@ anychart.core.StateSettings = function(stateHolder, descriptorsMeta, stateType, 
   this.stateType = stateType;
 
   if (goog.isDef(opt_descriptorsOverride)) {
-    var diff = anychart.core.settings.createDescriptors(anychart.core.StateSettings.PROPERTY_DESCRIPTORS, opt_descriptorsOverride);
-    anychart.core.settings.populate(anychart.core.StateSettings, diff);
+    var newDescriptors = {};
+    for (var i in this.PROPERTY_DESCRIPTORS) {
+      newDescriptors[i] = this.PROPERTY_DESCRIPTORS[i];
+    }
+    var diff = anychart.core.settings.createDescriptors(newDescriptors, opt_descriptorsOverride);
+    this.PROPERTY_DESCRIPTORS = newDescriptors;
+    anychart.core.settings.populate(this, diff, true);
   }
 };
 goog.inherits(anychart.core.StateSettings, anychart.core.Base);
@@ -93,6 +99,13 @@ anychart.core.StateSettings.MARKERS_AFTER_INIT_CALLBACK = 'markersAfterInitCallb
  * @type {string}
  */
 anychart.core.StateSettings.OUTLIER_MARKERS_AFTER_INIT_CALLBACK = 'outlierMarkersAfterInitCallback';
+
+
+/**
+ * Option name for connector after init callback (used in event markers).
+ * @type {string}
+ */
+anychart.core.StateSettings.CONNECTOR_AFTER_INIT_CALLBACK = 'connectorAfterInitCallback';
 
 
 /**
@@ -184,6 +197,17 @@ anychart.core.StateSettings.DEFAULT_OUTLIER_MARKERS_AFTER_INIT_CALLBACK = functi
 
 
 /**
+ * Default connector after init callback.
+ * @param {anychart.core.utils.Connector} connector
+ * @this {*}
+ */
+anychart.core.StateSettings.DEFAULT_CONNECTOR_AFTER_INIT_CALLBACK = function(connector) {
+  connector.listenSignals(this.connectorInvalidated_, this);
+  connector.setParentEventTarget(/** @type {goog.events.EventTarget} */ (this));
+};
+
+
+/**
  * Default outline settings constructor.
  * @this {*}
  * @return {anychart.core.ui.Outline}
@@ -257,7 +281,7 @@ anychart.core.StateSettings.prototype.resolutionChainCache = function(opt_value)
 /**
  * @type {!Object.<string, anychart.core.settings.PropertyDescriptor>}
  */
-anychart.core.StateSettings.PROPERTY_DESCRIPTORS = (function() {
+anychart.core.StateSettings.prototype.PROPERTY_DESCRIPTORS = (function() {
   /** @type {!Object.<string, anychart.core.settings.PropertyDescriptor>} */
   var map = {};
   /**
@@ -300,6 +324,10 @@ anychart.core.StateSettings.PROPERTY_DESCRIPTORS = (function() {
     descriptors.FONT_VARIANT,
     descriptors.FONT_WEIGHT,
     descriptors.FONT_SIZE,
+    // other text properties
+    descriptors.FONT_COLOR,
+    descriptors.FONT_OPACITY,
+    descriptors.FONT_DECORATION,
     // pert tasks
     descriptors.DUMMY_FILL,
     descriptors.DUMMY_STROKE,
@@ -309,7 +337,7 @@ anychart.core.StateSettings.PROPERTY_DESCRIPTORS = (function() {
 
   return map;
 })();
-anychart.core.settings.populate(anychart.core.StateSettings, anychart.core.StateSettings.PROPERTY_DESCRIPTORS);
+anychart.core.settings.populate(anychart.core.StateSettings, anychart.core.StateSettings.prototype.PROPERTY_DESCRIPTORS);
 
 
 //endregion
@@ -464,6 +492,26 @@ anychart.core.StateSettings.prototype.outlierMarkers = function(opt_value) {
 
 
 /**
+ * Connector settings (stroke/length).
+ * @param {(Object|string|number)=} opt_value
+ * @return {anychart.core.StateSettings|anychart.core.utils.Connector}
+ */
+anychart.core.StateSettings.prototype.connector = function(opt_value) {
+  if (!this.connector_) {
+    var afterInitCallback = /** @type {Function} */ (this.getOption(anychart.core.StateSettings.CONNECTOR_AFTER_INIT_CALLBACK)) || goog.nullFunction;
+    this.connector_ = new anychart.core.utils.Connector();
+    afterInitCallback.call(this.stateHolder, this.connector_);
+  }
+
+  if (goog.isDef(opt_value)) {
+    this.connector_.setup(opt_value);
+    return this;
+  }
+  return this.connector_;
+};
+
+
+/**
  * Outline.
  * @param {Object=} opt_value
  * @return {anychart.core.StateSettings|anychart.core.ui.Outline}
@@ -524,7 +572,7 @@ anychart.core.StateSettings.prototype.selected = function(opt_value) {
 /** @inheritDoc */
 anychart.core.StateSettings.prototype.serialize = function() {
   var json = anychart.core.StateSettings.base(this, 'serialize');
-  anychart.core.settings.serialize(this, anychart.core.StateSettings.PROPERTY_DESCRIPTORS, json, 'State settings', this.descriptorsMeta);
+  anychart.core.settings.serialize(this, this.PROPERTY_DESCRIPTORS, json, 'State settings', this.descriptorsMeta);
 
   if (this.descriptorsMeta['labels'])
     json['labels'] = this.labels().serialize();
@@ -546,6 +594,9 @@ anychart.core.StateSettings.prototype.serialize = function() {
   if (this.descriptorsMeta['outlierMarkers'])
     json['outlierMarkers'] = this.outlierMarkers().serialize();
 
+  if (this.descriptorsMeta['connector'])
+    json['connector'] = this.connector().serialize();
+
   if (this.descriptorsMeta['outline'])
     json['outline'] = this.outline().serialize();
 
@@ -566,7 +617,7 @@ anychart.core.StateSettings.prototype.setEnabledTrue = function(config) {
 /** @inheritDoc */
 anychart.core.StateSettings.prototype.setupByJSON = function(config, opt_default) {
   anychart.core.StateSettings.base(this, 'setupByJSON', config, opt_default);
-  anychart.core.settings.deserialize(this, anychart.core.StateSettings.PROPERTY_DESCRIPTORS, config);
+  anychart.core.settings.deserialize(this, this.PROPERTY_DESCRIPTORS, config);
 
   if (goog.isDef(this.descriptorsMeta['labels'])) {
     this.setEnabledTrue(config['labels']);
@@ -598,6 +649,10 @@ anychart.core.StateSettings.prototype.setupByJSON = function(config, opt_default
     this.outlierMarkers().setupInternal(!!opt_default, config['outlierMarkers']);
   }
 
+  if (goog.isDef(this.descriptorsMeta['connector'])) {
+    this.connector().setupInternal(!!opt_default, config['connector']);
+  }
+
   if (goog.isDef(this.descriptorsMeta['outline'])) {
     // this.setEnabledTrue(config['outline']);
     this.outline().setupInternal(!!opt_default, config['outline']);
@@ -607,7 +662,16 @@ anychart.core.StateSettings.prototype.setupByJSON = function(config, opt_default
 
 /** @inheritDoc */
 anychart.core.StateSettings.prototype.disposeInternal = function() {
-  goog.disposeAll(this.labels_, this.headers_, this.lowerLabels_, this.markers_, this.outlierMarkers_, this.outline_);
+  goog.disposeAll(
+      this.labels_,
+      this.headers_,
+      this.lowerLabels_,
+      this.markers_,
+      this.outlierMarkers_,
+      this.outline_,
+      this.connector_
+  );
+  delete this.connector_;
   anychart.core.StateSettings.base(this, 'disposeInternal');
 };
 
@@ -622,6 +686,7 @@ anychart.core.StateSettings.prototype.disposeInternal = function() {
   proto['lowerLabels'] = proto.lowerLabels;
   proto['markers'] = proto.markers;
   proto['outlierMarkers'] = proto.outlierMarkers;
+  proto['connector'] = proto.connector;
   proto['outline'] = proto.outline;
   proto['normal'] = proto.normal;
   proto['hovered'] = proto.hovered;
