@@ -245,13 +245,9 @@ anychart.stockModule.data.Table.prototype.deregisterComputer = function(computer
     }
     goog.array.sort(this.reusableComputedColumns_);
 
-    for (i = this.reusableComputedColumns_.length; i--;) {
-      if (this.reusableComputedColumns_[i] == this.computedColumnsCount_ - 1) {
+    for (i = this.reusableComputedColumns_.length; i-- && this.reusableComputedColumns_[i] == this.computedColumnsCount_ - 1;) {
         this.computedColumnsCount_--;
-        goog.array.splice(this.reusableComputedColumns_, i, 1);
-      } else {
-        break;
-      }
+        this.reusableComputedColumns_.pop();
     }
 
     for (i = 0; i < itemsToRemove.length; i++)
