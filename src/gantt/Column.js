@@ -298,8 +298,8 @@ anychart.ganttModule.Column.prototype.format = function(opt_value) {
   if (goog.isDef(opt_value))
     anychart.core.reporting.warning(anychart.enums.WarningCode.DEPRECATED, null, ['column.format()', 'column.labels().format()'], true);
   var l = /** @type {anychart.core.ui.LabelsFactory} */ (this.labels());
-  l['format'](opt_value);
-  return goog.isDef(opt_value) ? this : l['format']();
+  var result = l['format'](opt_value);
+  return goog.isDef(opt_value) ? this : result;
 };
 
 
@@ -795,10 +795,17 @@ anychart.ganttModule.Column.prototype.draw = function() {
          */
         var dataItemMethods = ['get', 'set','meta', 'del', 'getParent', 'addChild', 'addChildAt', 'getChildren', 'numChildren', 'getChildAt', 'remove', 'removeChild', 'removeChildAt', 'removeChildren', 'indexOfChild'];
         goog.object.forEach(dataItemMethods, function(methodName) {
-          format[methodName] = function() {
-            anychart.core.reporting.warning(anychart.enums.WarningCode.DEPRECATED, null, ['arguments[0].' + methodName + '()', 'arguments[0].item.' + methodName + '()'], true);
-            return goog.bind(item[methodName], item).apply(item, arguments);
-          };
+          var wrappedMethod = item['__wrapped' + methodName];
+          if (!wrappedMethod) {
+            var bindedHandler = goog.bind(item[methodName], item);
+            wrappedMethod = function() {
+              anychart.core.reporting.warning(anychart.enums.WarningCode.DEPRECATED, null, ['arguments[0].' + methodName + '()', 'arguments[0].item.' + methodName + '()'], true);
+              return bindedHandler.apply(item, arguments);
+            };
+
+            item['__wrapped' + methodName] = wrappedMethod;
+          }
+          format[methodName] = wrappedMethod;
         }, this);
 
         var label = labels.add(format, {'value': {'x': this.pixelBoundsCache_.left, 'y': totalTop}});
