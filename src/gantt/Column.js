@@ -794,7 +794,7 @@ anychart.ganttModule.Column.prototype.draw = function() {
            For save legacy behaviour here is this mixin.
          */
         var dataItemMethods = ['get', 'set','meta', 'del', 'getParent', 'addChild', 'addChildAt', 'getChildren', 'numChildren', 'getChildAt', 'remove', 'removeChild', 'removeChildAt', 'removeChildren', 'indexOfChild'];
-        goog.object.forEach(dataItemMethods, function(methodName) {
+        goog.array.forEach(dataItemMethods, function(methodName) {
           var wrappedMethod = item['__wrapped' + methodName];
           if (!wrappedMethod) {
             var bindedHandler = goog.bind(item[methodName], item);
