@@ -3608,14 +3608,14 @@ anychart.core.Chart.prototype.getCsvData = function(mode) {
 /**
  * Returns CSV string with series data.
  * @param {(string|anychart.enums.ChartDataExportMode)=} opt_chartDataExportMode CSV mode.
- * @param {Object.<string, (string|boolean|undefined)>=} opt_csvSettings CSV settings.
+ * @param {Object.<string, (string|boolean|function(*, *=):string|undefined)>=} opt_csvSettings CSV settings.
  * @return {string} CSV string.
  */
 anychart.core.Chart.prototype.toCsv = function(opt_chartDataExportMode, opt_csvSettings) {
   opt_chartDataExportMode = anychart.enums.normalizeChartDataExportMode(opt_chartDataExportMode);
   var result = (opt_chartDataExportMode == anychart.enums.ChartDataExportMode.RAW) ?
-    this.getRawCsvData() :
-    this.getCsvData(opt_chartDataExportMode);
+      this.getRawCsvData() :
+      this.getCsvData(opt_chartDataExportMode);
   return anychart.utils.serializeCsv(result.headers, result.data, opt_csvSettings);
 };
 
