@@ -680,30 +680,10 @@ anychart.core.ChartWithAxes.prototype.setYAxisScale = function(axis) {
 
 
 //endregion
-//region -- Scales.
+//region -- Scales invalidation.
 /** @inheritDoc */
-anychart.core.ChartWithAxes.prototype.xScale = function(opt_value) {
-  //this override fixes DVF-3678
-  anychart.core.ChartWithAxes.base(this, 'xScale', opt_value);
-  var scale = anychart.core.ChartWithAxes.base(this, 'xScale');
-  if (goog.isDef(opt_value)) {
-    this.invalidate(anychart.ConsistencyState.AXES_CHART_AXES, anychart.Signal.NEEDS_REDRAW);
-    return this;
-  }
-  return scale;
-};
-
-
-/** @inheritDoc */
-anychart.core.ChartWithAxes.prototype.yScale = function(opt_value) {
-  //this override fixes DVF-3678
-  anychart.core.ChartWithAxes.base(this, 'yScale', opt_value);
-  var scale = anychart.core.ChartWithAxes.base(this, 'yScale');
-  if (goog.isDef(opt_value)) {
-    this.invalidate(anychart.ConsistencyState.AXES_CHART_AXES, anychart.Signal.NEEDS_REDRAW);
-    return this;
-  }
-  return scale;
+anychart.core.ChartWithAxes.prototype.getScaleAdditionalInvalidationState = function() {
+  return anychart.ConsistencyState.AXES_CHART_AXES; //this overridden method fixes DVF-3678
 };
 
 
