@@ -3702,7 +3702,7 @@ anychart.core.Chart.prototype.saveAsJson = function(opt_filename) {
 /**
  * Saves chart data as csv.
  * @param {(string|anychart.enums.ChartDataExportMode)=} opt_chartDataExportMode CSV mode.
- * @param {Object.<string, (string|boolean|undefined)>=} opt_csvSettings CSV settings.
+ * @param {Object.<string, (string|boolean|function(*, *=):string|undefined)>=} opt_csvSettings CSV settings.
  * @param {string=} opt_filename file name to save.
  */
 anychart.core.Chart.prototype.saveAsCsv = function(opt_chartDataExportMode, opt_csvSettings, opt_filename) {
