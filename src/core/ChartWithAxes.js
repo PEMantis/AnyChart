@@ -680,6 +680,14 @@ anychart.core.ChartWithAxes.prototype.setYAxisScale = function(axis) {
 
 
 //endregion
+//region -- Scales invalidation.
+/** @inheritDoc */
+anychart.core.ChartWithAxes.prototype.getScaleAdditionalInvalidationState = function() {
+  return anychart.ConsistencyState.AXES_CHART_AXES; //this overridden method fixes DVF-3678
+};
+
+
+//endregion
 //region --- Axis markers
 //----------------------------------------------------------------------------------------------------------------------
 //
@@ -1299,7 +1307,7 @@ anychart.core.ChartWithAxes.prototype.drawContent = function(bounds) {
       if (item) {
         item.labels().dropCallsCache();
         item.minorLabels().dropCallsCache();
-        if (item && !item.scale())
+        if (item)
           item.scale(/** @type {anychart.scales.Base} */(this.xScale()));
       }
     }
@@ -1309,7 +1317,7 @@ anychart.core.ChartWithAxes.prototype.drawContent = function(bounds) {
       if (item) {
         item.labels().dropCallsCache();
         item.minorLabels().dropCallsCache();
-        if (item && !item.scale())
+        if (item)
           this.setYAxisScale(item);
       }
     }
