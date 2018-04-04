@@ -1973,7 +1973,7 @@ anychart.core.ui.LabelsFactory.Label.prototype.iterateDrawingPlans_ = function(h
       if (goog.isObject(result_) && !goog.isFunction(result_)) {
         if (goog.isDefAndNotNull(result))
           opt_invert ? goog.object.extend(result, result_) : goog.object.extend(result_, result);
-        result = result_;
+        result = opt_invert && result ? result : result_;
       } else {
         result = result_;
       }
