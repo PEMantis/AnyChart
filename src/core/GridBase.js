@@ -67,6 +67,12 @@ anychart.core.GridBase = function() {
    */
   this.fillMap = {};
 
+  /**
+   * @type {anychart.scales.IXScale|anychart.scales.IGeoScale|anychart.stockModule.scales.Scatter|anychart.scales.Base|null}
+   * @private
+   */
+  this.autoScale_ = null;
+
   anychart.core.settings.createDescriptorsMeta(this.descriptorsMeta, [
     ['stroke', anychart.ConsistencyState.APPEARANCE],
     ['fill', anychart.ConsistencyState.BOUNDS],
@@ -399,6 +405,7 @@ anychart.core.GridBase.prototype.layout = function(opt_value) {
     var layout = this.normalizeLayout(opt_value);
     if (this.layout_ != layout) {
       this.layout_ = layout;
+      this.autoScale_ = null;
       this.invalidate(anychart.ConsistencyState.GRIDS_POSITION,
           anychart.Signal.NEEDS_REDRAW | anychart.Signal.BOUNDS_CHANGED);
     }
@@ -443,22 +450,48 @@ anychart.core.GridBase.prototype.getOwner = function() {
 
 
 /**
- * Getter/setter for scale.
- * @param {(anychart.scales.IXScale|anychart.scales.IGeoScale|anychart.stockModule.scales.Scatter|anychart.scales.Base)=} opt_value Scale.
- * @return {anychart.scales.IXScale|anychart.scales.IGeoScale|!anychart.core.GridBase} Axis scale or itself for method chaining.
+ * Returns the most suitable scale depend
+ * @return {anychart.scales.IXScale|anychart.scales.IGeoScale|!anychart.core.GridBase|null}
  */
-anychart.core.GridBase.prototype.scale = function(opt_value) {
+anychart.core.GridBase.prototype.resolveScale = function() {
+  if (this.scale_)
+    return this.scale_;
+
+  else if (this.axis_)
+    return /** @type {?anychart.scales.Base} */ (this.axis_.scale());
+
+  return this.autoScale_;
+};
+
+
+/**
+ * Sets default scale
+ * @param {(anychart.scales.IXScale|anychart.scales.IGeoScale|anychart.stockModule.scales.Scatter|anychart.scales.Base)} value Scale.
+ */
+anychart.core.GridBase.prototype.setAutoScale = function(value) {
+  this.autoScale_ = this.setupScale(true, value);
+};
+
+
+/**
+ * Applies scale settings to scale property (this.scale_ or this.autoScale_)
+ * @param {boolean} useAutoSCale
+ * @param {(anychart.scales.IXScale|anychart.scales.IGeoScale|anychart.stockModule.scales.Scatter|anychart.scales.Base)=} opt_value Scale.
+ * @return {anychart.scales.IXScale|anychart.scales.IGeoScale|anychart.stockModule.scales.Scatter|anychart.scales.Base|null} Scale for method chaining.
+ */
+anychart.core.GridBase.prototype.setupScale = function(useAutoSCale, opt_value) {
+  var scaleProperty = useAutoSCale ? this.autoScale_ : this.scale_;
   if (goog.isDef(opt_value)) {
     var scType = opt_value && goog.isFunction(opt_value.getType) && opt_value.getType();
     var stockScale = (scType == anychart.enums.ScaleTypes.STOCK_SCATTER_DATE_TIME) || (scType == anychart.enums.ScaleTypes.STOCK_ORDINAL_DATE_TIME);
     var val = /** @type {anychart.stockModule.scales.Scatter|anychart.scales.Base} */(stockScale ?
-        (opt_value == this.scale_ ? null : opt_value) :
-        anychart.scales.Base.setupScale(this.scale_, opt_value, null, anychart.scales.Base.ScaleTypes.ALL_DEFAULT, null, this.scaleInvalidated, this));
-    if (val || (goog.isNull(opt_value) && this.scale_)) {
-      var dispatch = this.scale_ == val;
+        (opt_value == scaleProperty ? null : opt_value) :
+        anychart.scales.Base.setupScale(scaleProperty, opt_value, null, anychart.scales.Base.ScaleTypes.ALL_DEFAULT, null, this.scaleInvalidated, this));
+    if (val || (goog.isNull(opt_value) && scaleProperty)) {
+      var dispatch = scaleProperty == val;
       if (!val)
-        this.scale_.unlistenSignals(this.scaleInvalidated, this);
-      this.scale_ = /** @type {anychart.stockModule.scales.Scatter|anychart.scales.Base} */(val);
+        scaleProperty.unlistenSignals(this.scaleInvalidated, this);
+      scaleProperty = /** @type {anychart.stockModule.scales.Scatter|anychart.scales.Base} */(val);
       if (val && !stockScale)
         val.resumeSignalsDispatching(dispatch);
       if (!dispatch)
@@ -467,16 +500,23 @@ anychart.core.GridBase.prototype.scale = function(opt_value) {
             anychart.ConsistencyState.APPEARANCE,
             anychart.Signal.NEEDS_REDRAW | anychart.Signal.BOUNDS_CHANGED);
     }
-    return this;
-  } else {
-    if (this.scale_) {
-      return this.scale_;
-    } else {
-      if (this.axis_)
-        return /** @type {?anychart.scales.Base} */ (this.axis_.scale());
-      return null;
-    }
   }
+
+  return scaleProperty;
+};
+
+/**
+ * Getter/setter for scale.
+ * @param {(anychart.scales.IXScale|anychart.scales.IGeoScale|anychart.stockModule.scales.Scatter|anychart.scales.Base)=} opt_value Scale.
+ * @return {anychart.scales.IXScale|anychart.scales.IGeoScale|!anychart.core.GridBase} Axis scale or itself for method chaining.
+ */
+anychart.core.GridBase.prototype.scale = function(opt_value) {
+  if (goog.isDef(opt_value)) {
+    this.scale_ = this.setupScale(false, opt_value);
+    return this;
+  }
+
+  return this.resolveScale();
 };
 
 
@@ -498,6 +538,7 @@ anychart.core.GridBase.prototype.axis = function(opt_value) {
     if (this.axis_ != opt_value) {
       if (this.axis_) this.axis_.unlistenSignals(this.axisInvalidated, this);
       this.axis_ = opt_value;
+      this.layout(this.getLayoutByAxis(this.axis_));
       /** @type {anychart.core.Base} */(this.axis_).listenSignals(this.axisInvalidated, this);
       this.invalidate(anychart.ConsistencyState.GRIDS_POSITION,
           anychart.Signal.NEEDS_REDRAW | anychart.Signal.BOUNDS_CHANGED);
