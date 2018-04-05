@@ -2271,7 +2271,7 @@ anychart.core.series.Base.prototype.drawFactoryElement = function(seriesFactoryG
   var mainFactory;
   if (seriesFactoryGetters[0])
     mainFactory = seriesFactoryGetters[0].call(this.normal_);
-  
+
   var chartNormal, seriesNormal, pointNormal,
       chartState, seriesState, pointState,
       chartExtremumNormal, seriesExtremumNormal, pointExtremumNormal,
@@ -2533,6 +2533,33 @@ anychart.core.series.Base.prototype.setupLabelDrawingPlan = function(label,
                                                                      chartState, seriesState, pointState,
                                                                      chartExtremumNormal, seriesExtremumNormal, pointExtremumNormal,
                                                                      chartExtremumState, seriesExtremumState, pointExtremumState) {
+  // debugger
+
+  // var res = anychart.utils.extractSettings([
+  //   pointExtremumState, anychart.utils.ExtractSettingModes.PLAIN_OBJECT,
+  //   pointState, anychart.utils.ExtractSettingModes.PLAIN_OBJECT,
+  //   seriesExtremumState, anychart.utils.ExtractSettingModes.OWN_SETTINGS,
+  //   seriesState, anychart.utils.ExtractSettingModes.OWN_SETTINGS,
+  //   chartExtremumState, anychart.utils.ExtractSettingModes.OWN_SETTINGS,
+  //   chartState, anychart.utils.ExtractSettingModes.OWN_SETTINGS,
+  //   pointExtremumNormal, anychart.utils.ExtractSettingModes.PLAIN_OBJECT,
+  //   pointNormal, anychart.utils.ExtractSettingModes.PLAIN_OBJECT,
+  //   seriesExtremumNormal, anychart.utils.ExtractSettingModes.OWN_SETTINGS,
+  //   seriesNormal, anychart.utils.ExtractSettingModes.OWN_SETTINGS,
+  //   chartExtremumNormal, anychart.utils.ExtractSettingModes.OWN_SETTINGS,
+  //   chartNormal, anychart.utils.ExtractSettingModes.OWN_SETTINGS,
+  //   seriesExtremumState, anychart.utils.ExtractSettingModes.THEME_SETTINGS,
+  //   seriesState, anychart.utils.ExtractSettingModes.THEME_SETTINGS,
+  //   chartState, anychart.utils.ExtractSettingModes.THEME_SETTINGS,
+  //   label, anychart.utils.ExtractSettingModes.AUTO_SETTINGS,
+  //   seriesExtremumNormal, anychart.utils.ExtractSettingModes.THEME_SETTINGS,
+  //   seriesNormal, anychart.utils.ExtractSettingModes.THEME_SETTINGS,
+  //   chartNormal, anychart.utils.ExtractSettingModes.THEME_SETTINGS
+  // ]);
+  //
+  // console.log('chartNormal OWN_SETTINGS', res[11].background);
+  // console.log('seriesNormal OWN_SETTINGS', res[9].background);
+
   label.stateOrder(anychart.utils.extractSettings([
     pointExtremumState, anychart.utils.ExtractSettingModes.PLAIN_OBJECT,
     pointState, anychart.utils.ExtractSettingModes.PLAIN_OBJECT,

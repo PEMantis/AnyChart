@@ -55,11 +55,16 @@ anychart.utils.extractSettings = function(settingsArray, opt_callProp) {
       }
       if (goog.isObject(obj) && !goog.isFunction(obj.serialize)) {
         for (var k in obj) {
-          var instance = obj[k];
-          if (anychart.utils.instanceOf(instance, anychart.core.Base)) {
-            instance.ownSettings = mode == anychart.utils.ExtractSettingModes.OWN_SETTINGS ? instance.ownSettings : {};
-            instance.themeSettings = mode == anychart.utils.ExtractSettingModes.THEME_SETTINGS ? instance.themeSettings : {};
-            instance.autoSettings = mode == anychart.utils.ExtractSettingModes.AUTO_SETTINGS ? instance.autoSettings : {};
+          if (anychart.utils.instanceOf(obj[k], anychart.core.Base)) {
+            var setting = obj[k].serialize();
+            if (mode == anychart.utils.ExtractSettingModes.OWN_SETTINGS) {
+              setting.settingsEmpty = goog.object.isEmpty(obj[k].ownSettings);
+            } else if (mode == anychart.utils.ExtractSettingModes.THEME_SETTINGS) {
+              setting.settingsEmpty = goog.object.isEmpty(obj[k].themeSettings);
+            } else if (mode == anychart.utils.ExtractSettingModes.AUTO_SETTINGS) {
+              setting.settingsEmpty = goog.object.isEmpty(obj[k].autoSettings);
+            }
+            obj[k] = setting;
           }
         }
       }
