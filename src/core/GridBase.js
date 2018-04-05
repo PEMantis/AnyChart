@@ -469,7 +469,7 @@ anychart.core.GridBase.prototype.resolveScale = function() {
  * @param {(anychart.scales.IXScale|anychart.scales.IGeoScale|anychart.stockModule.scales.Scatter|anychart.scales.Base)} value Scale.
  */
 anychart.core.GridBase.prototype.setAutoScale = function(value) {
-  this.autoScale_ = this.setupScale(true, value);
+  this.setupScale(true, value);
 };
 
 
@@ -491,7 +491,10 @@ anychart.core.GridBase.prototype.setupScale = function(useAutoScale, opt_value) 
       var dispatch = scaleProperty == val;
       if (!val)
         scaleProperty.unlistenSignals(this.scaleInvalidated, this);
+
       scaleProperty = /** @type {anychart.stockModule.scales.Scatter|anychart.scales.Base} */(val);
+      useAutoScale ? this.autoScale_ = scaleProperty :this.scale_ = scaleProperty;
+
       if (val && !stockScale)
         val.resumeSignalsDispatching(dispatch);
       if (!dispatch)
@@ -512,7 +515,7 @@ anychart.core.GridBase.prototype.setupScale = function(useAutoScale, opt_value) 
  */
 anychart.core.GridBase.prototype.scale = function(opt_value) {
   if (goog.isDef(opt_value)) {
-    this.scale_ = this.setupScale(false, opt_value);
+    this.setupScale(false, opt_value);
     return this;
   }
 
