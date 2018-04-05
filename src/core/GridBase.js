@@ -450,7 +450,7 @@ anychart.core.GridBase.prototype.getOwner = function() {
 
 
 /**
- * Returns the most suitable scale depend
+ * Returns the most suitable scale
  * @return {anychart.scales.IXScale|anychart.scales.IGeoScale|!anychart.core.GridBase|null}
  */
 anychart.core.GridBase.prototype.resolveScale = function() {
@@ -475,12 +475,12 @@ anychart.core.GridBase.prototype.setAutoScale = function(value) {
 
 /**
  * Applies scale settings to scale property (this.scale_ or this.autoScale_)
- * @param {boolean} useAutoSCale
+ * @param {boolean} useAutoScale
  * @param {(anychart.scales.IXScale|anychart.scales.IGeoScale|anychart.stockModule.scales.Scatter|anychart.scales.Base)=} opt_value Scale.
  * @return {anychart.scales.IXScale|anychart.scales.IGeoScale|anychart.stockModule.scales.Scatter|anychart.scales.Base|null} Scale for method chaining.
  */
-anychart.core.GridBase.prototype.setupScale = function(useAutoSCale, opt_value) {
-  var scaleProperty = useAutoSCale ? this.autoScale_ : this.scale_;
+anychart.core.GridBase.prototype.setupScale = function(useAutoScale, opt_value) {
+  var scaleProperty = useAutoScale ? this.autoScale_ : this.scale_;
   if (goog.isDef(opt_value)) {
     var scType = opt_value && goog.isFunction(opt_value.getType) && opt_value.getType();
     var stockScale = (scType == anychart.enums.ScaleTypes.STOCK_SCATTER_DATE_TIME) || (scType == anychart.enums.ScaleTypes.STOCK_ORDINAL_DATE_TIME);
