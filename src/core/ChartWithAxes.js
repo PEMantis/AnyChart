@@ -143,7 +143,7 @@ anychart.core.ChartWithAxes.prototype.setDefaultScaleForLayoutBasedElements = fu
   else
     scale = this.xScale();
 
-  goog.isFunction(item['setAutoScale']) ?
+  goog.isFunction(item.setAutoScale) ?
       item.setAutoScale(/** @type {anychart.scales.Base} */(scale)) :
       item.scale(/** @type {anychart.scales.Base} */(scale));
 };
