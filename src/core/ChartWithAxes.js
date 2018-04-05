@@ -1307,7 +1307,8 @@ anychart.core.ChartWithAxes.prototype.drawContent = function(bounds) {
       if (item) {
         item.labels().dropCallsCache();
         item.minorLabels().dropCallsCache();
-        if (item)
+        //item.scale() == this.oldXScale fixes DVF-3678
+        if (item && (item.scale() == this.oldXScale || !item.scale()))
           item.scale(/** @type {anychart.scales.Base} */(this.xScale()));
       }
     }
@@ -1317,7 +1318,8 @@ anychart.core.ChartWithAxes.prototype.drawContent = function(bounds) {
       if (item) {
         item.labels().dropCallsCache();
         item.minorLabels().dropCallsCache();
-        if (item)
+        //item.scale() == this.oldYScale fixes DVF-3678
+        if (item && (item.scale() == this.oldYScale || !item.scale()))
           this.setYAxisScale(item);
       }
     }

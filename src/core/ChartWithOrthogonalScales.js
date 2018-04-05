@@ -256,6 +256,7 @@ anychart.core.ChartWithOrthogonalScales.prototype.xScale = function(opt_value) {
     var val = anychart.scales.Base.setupScale(this.xScale_, opt_value, null, this.getXScaleAllowedTypes(), this.getXScaleWrongTypeError(), this.xScaleInvalidated, this);
     if (val) {
       var dispatch = this.xScale_ == val;
+      this.oldXScale = this.xScale_; //this.fixes DVF-3678
       this.xScale_ = val;
       val.resumeSignalsDispatching(dispatch);
 
@@ -314,6 +315,7 @@ anychart.core.ChartWithOrthogonalScales.prototype.yScale = function(opt_value) {
     var val = anychart.scales.Base.setupScale(this.yScale_, opt_value, null, this.getYScaleAllowedTypes(), this.getYScaleWrongTypeError(), this.yScaleInvalidated, this);
     if (val) {
       var dispatch = this.yScale_ == val;
+      this.oldYScale = this.yScale_; //this.fixes DVF-3678
       this.yScale_ = val;
       this.yScale_.resumeSignalsDispatching(dispatch);
       if (!dispatch) {
@@ -2511,6 +2513,9 @@ anychart.core.ChartWithOrthogonalScales.prototype.serializeScale = function(json
  */
 anychart.core.ChartWithOrthogonalScales.prototype.disposeInternal = function() {
   goog.dispose(this.animationQueue_);
+  goog.disposeAll(this.oldXScale, this.oldYScale);
+  this.oldXScale = null;
+  this.oldYScale = null;
   anychart.core.ChartWithOrthogonalScales.base(this, 'disposeInternal');
 };
 
