@@ -671,7 +671,7 @@ anychart.treeDataModule.Tree.prototype.comparisonFunctionWrapper_ = function(com
 
 
 /**
- * Performs a data search. Returns null of nothing is found, tree data item if here's a single result and array of
+ * Performs a data search. Returns null if nothing is found, tree data item if here's a single result and array of
  * tree data items if here are multiple matches.
  *
  * @param {string} field - Field for search. Literally means the name of field of data item.
