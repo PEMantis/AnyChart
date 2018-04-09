@@ -541,7 +541,6 @@ anychart.core.GridBase.prototype.axis = function(opt_value) {
     if (this.axis_ != opt_value) {
       if (this.axis_) this.axis_.unlistenSignals(this.axisInvalidated, this);
       this.axis_ = opt_value;
-      this.layout(this.getLayoutByAxis(this.axis_));
       /** @type {anychart.core.Base} */(this.axis_).listenSignals(this.axisInvalidated, this);
       this.invalidate(anychart.ConsistencyState.GRIDS_POSITION,
           anychart.Signal.NEEDS_REDRAW | anychart.Signal.BOUNDS_CHANGED);
