@@ -143,9 +143,10 @@ anychart.core.ChartWithAxes.prototype.setDefaultScaleForLayoutBasedElements = fu
   else
     scale = this.xScale();
 
-  anychart.utils.instanceOf(item, anychart.core.GridBase) ?
-      item.setAutoScale(/** @type {anychart.scales.Base} */(scale)) :
-      item.scale(/** @type {anychart.scales.Base} */(scale));
+  if (anychart.utils.instanceOf(item, anychart.core.GridBase))
+    item.setAutoScale(/** @type {anychart.scales.Base} */(scale));
+  else
+    item.scale(/** @type {anychart.scales.Base} */(scale));
 };
 
 
