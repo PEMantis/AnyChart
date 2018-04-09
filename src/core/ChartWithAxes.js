@@ -1307,8 +1307,8 @@ anychart.core.ChartWithAxes.prototype.drawContent = function(bounds) {
       if (item) {
         item.labels().dropCallsCache();
         item.minorLabels().dropCallsCache();
-        //Scale type check fixes DVF-3678
-        if (item && (!item.scale() || item.scale().getType() == this.oldXScaleType)) {
+        //Scale uid check fixes DVF-3678
+        if (item && (!item.scale() || String(goog.getUid(item.scale())) == this.oldXScaleUid)) {
           item.scale(/** @type {anychart.scales.Base} */(this.xScale()));
           this.invalidate(anychart.ConsistencyState.BOUNDS);
         }
@@ -1320,8 +1320,8 @@ anychart.core.ChartWithAxes.prototype.drawContent = function(bounds) {
       if (item) {
         item.labels().dropCallsCache();
         item.minorLabels().dropCallsCache();
-        //Scale type check fixes DVF-3678
-        if (item && (!item.scale() || item.scale().getType() == this.oldYScaleType)) {
+        //Scale uid check fixes DVF-3678
+        if (item && (!item.scale() || String(goog.getUid(item.scale())) == this.oldYScaleUid)) {
           this.setYAxisScale(item);
           this.invalidate(anychart.ConsistencyState.BOUNDS);
         }

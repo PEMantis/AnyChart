@@ -256,7 +256,7 @@ anychart.core.ChartWithOrthogonalScales.prototype.xScale = function(opt_value) {
     var val = anychart.scales.Base.setupScale(this.xScale_, opt_value, null, this.getXScaleAllowedTypes(), this.getXScaleWrongTypeError(), this.xScaleInvalidated, this);
     if (val) {
       var dispatch = this.xScale_ == val;
-      this.oldXScaleType = this.xScale_ ? this.xScale_.getType() : null; //this.fixes DVF-3678
+      this.oldXScaleUid = this.xScale_ ? String(goog.getUid(this.xScale_)) : null; //this.fixes DVF-3678
       this.xScale_ = val;
       val.resumeSignalsDispatching(dispatch);
 
@@ -315,7 +315,7 @@ anychart.core.ChartWithOrthogonalScales.prototype.yScale = function(opt_value) {
     var val = anychart.scales.Base.setupScale(this.yScale_, opt_value, null, this.getYScaleAllowedTypes(), this.getYScaleWrongTypeError(), this.yScaleInvalidated, this);
     if (val) {
       var dispatch = this.yScale_ == val;
-      this.oldYScaleType = this.yScale_ ? this.yScale_.getType() : null; //this.fixes DVF-3678
+      this.oldYScaleUid = this.yScale_ ? String(goog.getUid(this.yScale_)) : null; //this.fixes DVF-3678
       this.yScale_ = val;
       this.yScale_.resumeSignalsDispatching(dispatch);
       if (!dispatch) {
