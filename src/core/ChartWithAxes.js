@@ -1307,9 +1307,11 @@ anychart.core.ChartWithAxes.prototype.drawContent = function(bounds) {
       if (item) {
         item.labels().dropCallsCache();
         item.minorLabels().dropCallsCache();
-        //item.scale() == this.oldXScale fixes DVF-3678
-        if (item && (item.scale() == this.oldXScale || !item.scale()))
+        //Scale type check fixes DVF-3678
+        if (item && (!item.scale() || item.scale().getType() == this.oldXScaleType)) {
           item.scale(/** @type {anychart.scales.Base} */(this.xScale()));
+          this.invalidate(anychart.ConsistencyState.BOUNDS);
+        }
       }
     }
 
@@ -1318,9 +1320,11 @@ anychart.core.ChartWithAxes.prototype.drawContent = function(bounds) {
       if (item) {
         item.labels().dropCallsCache();
         item.minorLabels().dropCallsCache();
-        //item.scale() == this.oldYScale fixes DVF-3678
-        if (item && (item.scale() == this.oldYScale || !item.scale()))
+        //Scale type check fixes DVF-3678
+        if (item && (!item.scale() || item.scale().getType() == this.oldYScaleType)) {
           this.setYAxisScale(item);
+          this.invalidate(anychart.ConsistencyState.BOUNDS);
+        }
       }
     }
   }
