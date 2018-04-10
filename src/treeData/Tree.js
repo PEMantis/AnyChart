@@ -726,6 +726,20 @@ anychart.treeDataModule.Tree.prototype.searchItems = function(field, value, opt_
 };
 
 
+/**
+ * Filters tree data items by filter-function.
+ * NOTE: filter performs full data passage. It means that filtering is way slower than searching on indexed field
+ *  with correctly implemented comparison function.
+ * @param {function((anychart.treeDataModule.Tree.DataItem|anychart.treeDataModule.View.DataItem)):boolean} filterFunction - Filter function.
+ * @return {Array.<anychart.treeDataModule.Tree.DataItem|anychart.treeDataModule.View.DataItem>}
+ */
+anychart.treeDataModule.Tree.prototype.filter = function(filterFunction) {
+  var traverser = this.getTraverser();
+  traverser.nodeYieldCondition(filterFunction);
+  return traverser.toArray();
+};
+
+
 //----------------------------------------------------------------------------------------------------------------------
 //
 //  Tree CRUD.
@@ -1988,6 +2002,7 @@ anychart.data.tree = function(opt_data, opt_fillMethodOrCsvMapping, opt_csvSetti
   proto['removeIndexOn'] = proto.removeIndexOn;
   proto['search'] = proto.search;
   proto['searchItems'] = proto.searchItems;
+  proto['filter'] = proto.filter;
   proto['addChild'] = proto.addChild;
   proto['addChildAt'] = proto.addChildAt;
   proto['getChildren'] = proto.getChildren;
